@@ -18,14 +18,20 @@ Java(TM) SE Runtime Environment (build 1.8.0_45-b14)
 ```
 
 ### Maven安装
-
+在pom.xml添加如下依赖：
 ```
-// 请先 mvn install 将xasset-sdk-java安装到本地mvn仓库
-<dependency>
-    <groupId>com.baidu.xasset</groupId>
-    <artifactId>xasset-sdk-java</artifactId>
-    <version>1.1</version>
-</dependency>
+    <dependencies>
+        <dependency>
+            <groupId>com.baidu.xasset</groupId>
+            <artifactId>xasset-sdk-java</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.baidu.xuper</groupId>
+            <artifactId>xuper-java-sdk</artifactId>
+            <version>0.2.0</version>
+        </dependency>
+    </dependencies>
 
 ```
 

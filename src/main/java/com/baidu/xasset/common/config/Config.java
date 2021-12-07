@@ -11,7 +11,7 @@ public class Config {
     /**
      * 联调环境
      */
-    private static String EndPointDefault = "120.48.16.137:8360";
+    private static String EndPointDefault = "http://120.48.16.137:8360";
     private static String UserAgentDefault = "xasset-sdk-java";
     private static Duration ConnectTimeoutMsDef = Duration.ofMillis(1000);
 

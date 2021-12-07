@@ -61,7 +61,7 @@ public class Base {
      * @throws Exception 异常
      */
     public static RequestRes post(String uri, Map<String, String> data) throws Exception {
-        String reqUrl = String.format("https://%s%s", getConfig().EndPoint, uri);
+        String reqUrl = String.format("%s%s", getConfig().EndPoint, uri);
         final URI u = new URI(reqUrl);
         MessageDigest md;
         md = MessageDigest.getInstance("MD5");

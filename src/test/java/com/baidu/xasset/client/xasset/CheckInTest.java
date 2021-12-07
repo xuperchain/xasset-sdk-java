@@ -25,8 +25,8 @@ public class CheckInTest {
         Asset handle = new Asset(Config.getXassetConfig(), Logger.getGlobal());
 
         // 1. 创造数字资产
-        AssetInfo assetInfo = new AssetInfo(XassetDef.ASSETCATEART, "test1.0",
-                new String[]{"bos_v1://bucket/object/1000_500"}, "xasset v3 test1.0",
+        AssetInfo assetInfo = new AssetInfo(XassetDef.ASSETCATEART, "welcome",
+                new String[]{"bos_v1://bucket/object/1000_500"}, "welcome xasset",
                 new String[]{"bos_v1://bucket/object/1000_500"}, new String[]{"bos_v1://bucket/object/1000_500"},
                 null, null, 0);
 
