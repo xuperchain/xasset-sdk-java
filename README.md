@@ -52,7 +52,7 @@ XassetCliConfig cfg = new XassetCliConfig();
 // 配置AK/SK
 cfg.SetCredentials(appId, ak, sk);
 // 确认Endpoint, 接入联调环境
-cfg.SetEndPoint("120.48.16.137:8360");
+cfg.SetEndPoint("http://120.48.16.137:8360");
 
 ```
 
@@ -78,7 +78,7 @@ public class Test {
         String sk = "xxx";
         XassetCliConfig cfg = new XassetCliConfig();
         cfg.setCredentials(appId, ak, sk);
-        cfg.setEndPoint("120.48.16.137:8360");
+        cfg.setEndPoint("http://120.48.16.137:8360");
 
         // 初始化接口类
         Asset handle = new Asset(cfg, Logger.getGlobal());
