@@ -130,7 +130,7 @@ public class Asset {
 
         String key = String.format("/%s%s", objectPath, fileName);
 
-        if ("".equals(filePath)) {
+        if (!"".equals(filePath)) {
             File file = new File(filePath);
             client.putObject(bucketName, key, file);
         } else if (dataByte.length > 1) {
