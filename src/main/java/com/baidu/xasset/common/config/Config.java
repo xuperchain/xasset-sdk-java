@@ -47,7 +47,6 @@ public class Config {
                             add("content-md5");
                         }
                     });
-                    setTimestamp(new Date());
                     setExpirationInSeconds(DEFAULT_EXPIRATION_IN_SECONDS);
                 }
             };
