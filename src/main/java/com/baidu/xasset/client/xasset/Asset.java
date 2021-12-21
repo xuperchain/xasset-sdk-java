@@ -456,9 +456,10 @@ public class Asset {
      * @param assetId  资产id
      * @param toAddr   资产接收者区块链账户地址
      * @param toUserId 资产接收者用户id（可选）
+     * @param shardId  碎片id（可选）
      * @return {@link Resp}<{@link GrantShardResp}>
      */
-    public Resp<GrantShardResp> grantShard(final Account account, final long assetId, final String toAddr, final long toUserId) {
+    public Resp<GrantShardResp> grantShard(final Account account, final long assetId, long shardId, final String toAddr, final long toUserId) {
         if (account == null || assetId < 1 || "".equals(toAddr)) {
             Base.logger.warning("grant shard param is invalid");
             return null;
@@ -466,7 +467,10 @@ public class Asset {
 
         // sign
         final long nonce = Utils.genNonce();
-        final long shardId = Utils.genAssetId(Base.getConfig().Credentials.AppId);
+        if (shardId < 1) {
+            shardId = Utils.genNonce();
+        }
+        final long finalShardId = shardId;
         String signMsg = String.format("%d%d", assetId, nonce);
         String rawSign;
         try {
@@ -480,7 +484,7 @@ public class Asset {
         Map<String, String> body = new HashMap<String, String>() {
             {
                 put("asset_id", String.format("%d", assetId));
-                put("shard_id", String.format("%d", shardId));
+                put("shard_id", String.format("%d", finalShardId));
                 put("addr", account.getAKAddress());
                 put("sign", sign);
                 put("pkey", account.getKeyPair().getJSONPublicKey());

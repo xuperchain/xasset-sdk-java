@@ -53,7 +53,7 @@ public class Signer {
         String sk = credentials.getSecretKey();
         String signDate = DateUtils.formatAlternateIso8601Date(new Date());
 
-        // Modify the sign time if it is not the default value bug specified by com.baidu.xasset.client
+        // Modify the sign time if it is not the default value but specified by client
         if (options.getTimestamp() != null) {
             signDate = DateUtils.formatAlternateIso8601Date(options.getTimestamp());
         }
