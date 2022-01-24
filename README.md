@@ -61,37 +61,32 @@ cfg.SetEndPoint("http://120.48.16.137:8360");
 ### 使用示例
 
 ```
-
 import com.baidu.xasset.auth.XchainAccount;
-import com.baidu.xasset.client.xasset.Asset;
+import com.baidu.xasset.client.base.BaseDef.*;
 import com.baidu.xasset.client.xasset.XassetDef.*;
 import com.baidu.xasset.common.config.Config.*;
 import com.baidu.xuper.api.Account;
 
 import java.util.logging.Logger;
 
-
-public class Test {
-
+class Test {
     public static void main(String[] args) {
         // 配置AK/SK
         long appId = 0;
-        String ak ="xxx";
-        String sk = "xxx";
+        String ak = "";
+        String sk = "";
+
         XassetCliConfig cfg = new XassetCliConfig();
         cfg.setCredentials(appId, ak, sk);
         cfg.setEndPoint("http://120.48.16.137:8360");
-
-        // 初始化接口类
-        Asset handle = new Asset(cfg, Logger.getGlobal());
+        
         // 创建区块链账户
         Account acc = XchainAccount.newXchainEcdsaAccount(XchainAccount.mnemStrgthStrong, XchainAccount.mnemLangEN);
-        // 配置接口参数
-        UploadFileParam param = new UploadFileParam(acc, "fileName", "filePath", fileDataBytes);
-        UploadFile result = handle.UploadFile(param);
+        // 初始化接口类
+        Asset handle = new Asset(cfg, Logger.getGlobal());
+        // 调用方法
+        Resp<GetStokenResp> result = handle.getStoken(acc);
         System.out.println(result);
     }
 }
-
-
 ```
