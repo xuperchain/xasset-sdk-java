@@ -155,9 +155,10 @@ public class Asset {
      * @param amount    数字资产数量。0：无限授予碎片
      * @param assetInfo 数字资产信息
      * @param userId    业务侧用户id（可选）
+     * @param price     资产价格（可选）
      * @return {@link Resp}<{@link CreateAssetResp}>
      */
-    public Resp<CreateAssetResp> createAsset(final Account account, final long amount, AssetInfo assetInfo, final long userId) {
+    public Resp<CreateAssetResp> createAsset(final Account account, final long amount, AssetInfo assetInfo, final long userId, final long price) {
         // check param
         if (account == null || amount < 0 || assetInfo == null || assetInfo.assetCate < XassetDef.ASSETCATEART || "".equals(assetInfo.title) || assetInfo.thumb == null || "".equals(assetInfo.shortDesc)) {
             Base.logger.warning("create asset param is invalid");
@@ -188,6 +189,7 @@ public class Asset {
                 put("pkey", account.getKeyPair().getJSONPublicKey());
                 put("nonce", String.format("%d", nonce));
                 put("user_id", String.format("%d", userId));
+                put("price", String.format("%d", price));
             }
         };
 
@@ -225,9 +227,10 @@ public class Asset {
      * @param assetId   资产id
      * @param amount    资产数量。-1：不修改数量 0：无限授予碎片
      * @param assetInfo 资产信息
+     * @param price     资产价格（可选），不修改原价格请将此值设置为 -1
      * @return {@link Resp}<{@link BaseResp}>
      */
-    public Resp<BaseResp> alterAsset(final Account account, final long assetId, final long amount, AssetInfo assetInfo) {
+    public Resp<BaseResp> alterAsset(final Account account, final long assetId, final long amount, AssetInfo assetInfo, final long price) {
         if (account == null || assetId < 1 || (assetInfo == null && amount < -1)) {
             Base.logger.warning("alter asset param is invalid");
             return null;
@@ -259,6 +262,7 @@ public class Asset {
                 put("sign", sign);
                 put("pkey", account.getKeyPair().getJSONPublicKey());
                 put("nonce", String.format("%d", nonce));
+                put("price", String.format("%d", price));
             }
         };
 
@@ -457,9 +461,10 @@ public class Asset {
      * @param toAddr   资产接收者区块链账户地址
      * @param toUserId 资产接收者用户id（可选）
      * @param shardId  碎片id（可选）
+     * @param price    碎片价格（可选）
      * @return {@link Resp}<{@link GrantShardResp}>
      */
-    public Resp<GrantShardResp> grantShard(final Account account, final long assetId, long shardId, final String toAddr, final long toUserId) {
+    public Resp<GrantShardResp> grantShard(final Account account, final long assetId, long shardId, final String toAddr, final long toUserId, final long price) {
         if (account == null || assetId < 1 || "".equals(toAddr)) {
             Base.logger.warning("grant shard param is invalid");
             return null;
@@ -491,6 +496,7 @@ public class Asset {
                 put("nonce", String.format("%d", nonce));
                 put("to_addr", toAddr);
                 put("to_userid", String.format("%d", toUserId));
+                put("price", String.format("%d", price));
             }
         };
 
@@ -530,9 +536,10 @@ public class Asset {
      * @param shardId  碎片id
      * @param toAddr   资产接收者区块链地址
      * @param toUserId 资产接收者用户id（可选）
+     * @param price    碎片价格（可选）
      * @return {@link Resp}<{@link BaseResp}>
      */
-    public Resp<BaseResp> transferShard(final Account account, final long assetId, final long shardId, final String toAddr, final long toUserId) {
+    public Resp<BaseResp> transferShard(final Account account, final long assetId, final long shardId, final String toAddr, final long toUserId, final long price) {
         if (account == null || assetId < 1 || shardId < 1 || "".equals(toAddr)) {
             Base.logger.warning("transfer shard param is invalid");
             return null;
@@ -560,6 +567,7 @@ public class Asset {
                 put("nonce", String.format("%d", nonce));
                 put("to_addr", toAddr);
                 put("to_userid", String.format("%d", toUserId));
+                put("price", String.format("%d", price));
             }
         };
 
