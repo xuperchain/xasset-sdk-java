@@ -18,4 +18,7 @@ class Api {
     final static String LISTSHARDSBYASSET = "/xasset/horae/v1/listsdsbyast";
     final static String HISTORYASSET = "/xasset/horae/v1/history";
     final static String GETEVIDENCEINFO = "/xasset/horae/v1/getevidenceinfo";
+    final static String FREEZEASSET = "/xasset/horae/v1/freeze";
+    final static String CONSUMESHARD = "/xasset/horae/v1/consume";
+    final static String SHARDINCIRCULATION = "/xasset/horae/v1/srdscir";
 }

@@ -356,6 +356,67 @@ public class Asset {
     }
 
     /**
+     * 链上冻结数字资产
+     *
+     * @param account    创建资产区块链账户
+     * @param assetId    资产id
+     * @return {@link Resp}<{@link BaseResp}>
+     */
+    public Resp<BaseResp> freezeAsset(final long assetId, final Account account) {
+        if (assetId < 1 || account == null) {
+            Base.logger.warning("freeze asset param is invalid");
+            return null;
+        }
+
+        // sign
+        final long nonce = Utils.genNonce();
+        String signMsg = String.format("%d%d", assetId, nonce);
+        String rawSign;
+        try {
+            rawSign = Crypto.xassetSignECDSA(account, signMsg.getBytes());
+        } catch (Exception e) {
+            Base.logger.warning("account esdsa sign failed" + e);
+            return null;
+        }
+
+        final String sign = rawSign;
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("asset_id", String.format("%d", assetId));
+                put("addr", account.getAKAddress());
+                put("sign", sign);
+                put("pkey", account.getKeyPair().getJSONPublicKey());
+                put("nonce", String.format("%d", nonce));
+            }
+        };
+
+        RequestRes res;
+        try {
+            res = Base.post(Api.FREEZEASSET, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        JSONObject obj = JSONObject.parseObject(res.body);
+        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
+        if (resp.errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("freeze asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+            return null;
+        }
+
+        Base.logger.info(String.format("freeze asset succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl,
+                resp.requestId, res.traceId));
+        return new Resp<>(resp, res);
+    }
+
+    /**
      * 查询数字资产详情
      *
      * @param assetId 资产id
@@ -599,6 +660,83 @@ public class Asset {
     }
 
     /**
+     * 核销数字资产碎片
+     *
+     * @param cAccount  资产创建者区块链账户
+     * @param uAccount 资产碎片拥有者账户
+     * @param assetId  资产id
+     * @param shardId  碎片id
+     * @return {@link Resp}<{@link BaseResp}>
+     */
+    public Resp<BaseResp> consumeShard(final Account cAccount, final Account uAccount, final long assetId, final long shardId) {
+        if (cAccount == null || uAccount == null || assetId < 1 || shardId < 1) {
+            Base.logger.warning("consume shard param is invalid");
+            return null;
+        }
+
+        // sign
+        final long nonce = Utils.genNonce();
+        String signMsg = String.format("%d%d", assetId, nonce);
+        String rawCSign;
+        String rawUSign;
+        try {
+            rawCSign = Crypto.xassetSignECDSA(cAccount, signMsg.getBytes());
+        } catch (Exception e) {
+            Base.logger.warning("cAccount ecdsa sign failed" + e);
+            return null;
+        }
+
+        try {
+            rawUSign = Crypto.xassetSignECDSA(uAccount, signMsg.getBytes());
+        } catch (Exception e) {
+            Base.logger.warning("uAccount ecdsa sign failed" + e);
+            return null;
+        }
+
+        final String cSign = rawCSign;
+        final String uSign = rawUSign;
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("asset_id", String.format("%d", assetId));
+                put("shard_id", String.format("%d", shardId));
+                put("addr", cAccount.getAKAddress());
+                put("sign", cSign);
+                put("pkey", cAccount.getKeyPair().getJSONPublicKey());
+                put("user_addr", uAccount.getAKAddress());
+                put("user_sign", uSign);
+                put("user_pkey", uAccount.getKeyPair().getJSONPublicKey());
+                put("nonce", String.format("%d", nonce));
+            }
+        };
+
+        RequestRes res;
+        try {
+            res = Base.post(Api.CONSUMESHARD, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        JSONObject obj = JSONObject.parseObject(res.body);
+        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
+        if (resp.errNo != BaseDef.ERRNOSUCC) {
+            Base.logger
+                    .warning(String.format("consume shard failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                            res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+            return null;
+        }
+
+        Base.logger.info(String.format("consume shard succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl,
+                resp.requestId, res.traceId));
+        return new Resp<>(resp, res);
+    }
+
+    /**
      * 查询指定资产碎片信息
      *
      * @param assetId 资产id
@@ -641,6 +779,51 @@ public class Asset {
         }
 
         Base.logger.info(String.format("query shards succ.[meta:%s] [url:%s] [request_id:%s] [trace_id:%s]", resp.meta,
+                res.reqUrl, resp.requestId, res.traceId));
+        return new Resp<>(resp, res);
+    }
+
+    /**
+     * 查询资产流通量
+     *
+     * @param assetId 资产id
+     * @return {@link Resp}<{@link SrdsCirResp}>
+     */
+    public Resp<SrdsCirResp> ShardsInCirculation(final long assetId) {
+        if (assetId < 1) {
+            Base.logger.warning("shard in circulation param is invalid");
+            return null;
+        }
+
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("asset_id", String.format("%d", assetId));
+            }
+        };
+
+        RequestRes res;
+        try {
+            res = Base.post(Api.SHARDINCIRCULATION, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        JSONObject obj = JSONObject.parseObject(res.body);
+        SrdsCirResp resp = new SrdsCirResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
+                obj.getLong("srdscir_amount"));
+        if (resp.errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("shard in circulation failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+            return null;
+        }
+
+        Base.logger.info(String.format("shard in circulation succ.[amount:%d] [url:%s] [request_id:%s] [trace_id:%s]", resp.amount,
                 res.reqUrl, resp.requestId, res.traceId));
         return new Resp<>(resp, res);
     }
