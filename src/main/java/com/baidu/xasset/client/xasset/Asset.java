@@ -156,9 +156,10 @@ public class Asset {
      * @param assetInfo 数字资产信息
      * @param userId    业务侧用户id（可选）
      * @param price     资产价格（可选）
+     * @param fileHash  资产原始文件哈希值（可选）
      * @return {@link Resp}<{@link CreateAssetResp}>
      */
-    public Resp<CreateAssetResp> createAsset(final Account account, final long amount, AssetInfo assetInfo, final long userId, final long price) {
+    public Resp<CreateAssetResp> createAsset(final Account account, final long amount, AssetInfo assetInfo, final long userId, final long price, final String fileHash) {
         // check param
         if (account == null || amount < 0 || assetInfo == null || assetInfo.assetCate < XassetDef.ASSETCATEART || "".equals(assetInfo.title) || assetInfo.thumb == null || "".equals(assetInfo.shortDesc)) {
             Base.logger.warning("create asset param is invalid");
@@ -190,6 +191,7 @@ public class Asset {
                 put("nonce", String.format("%d", nonce));
                 put("user_id", String.format("%d", userId));
                 put("price", String.format("%d", price));
+                put("file_hash", fileHash);
             }
         };
 
@@ -228,9 +230,10 @@ public class Asset {
      * @param amount    资产数量。-1：不修改数量 0：无限授予碎片
      * @param assetInfo 资产信息
      * @param price     资产价格（可选），不修改原价格请将此值设置为 -1
+     * @param fileHash  资产原始文件哈希值（可选）
      * @return {@link Resp}<{@link BaseResp}>
      */
-    public Resp<BaseResp> alterAsset(final Account account, final long assetId, final long amount, AssetInfo assetInfo, final long price) {
+    public Resp<BaseResp> alterAsset(final Account account, final long assetId, final long amount, AssetInfo assetInfo, final long price, final String fileHash) {
         if (account == null || assetId < 1 || (assetInfo == null && amount < -1)) {
             Base.logger.warning("alter asset param is invalid");
             return null;
@@ -263,6 +266,7 @@ public class Asset {
                 put("pkey", account.getKeyPair().getJSONPublicKey());
                 put("nonce", String.format("%d", nonce));
                 put("price", String.format("%d", price));
+                put("file_hash", String.format("%d", fileHash));
             }
         };
 
@@ -297,11 +301,11 @@ public class Asset {
      *
      * @param account    创建资产区块链账户
      * @param assetId    资产id
-     * @param isEvidence 是否存证。0：不存证 1：普通存证。默认 0（可选）
+     * @param evidenceType 是否存证。0：不存证 1：普通存证。默认 0（可选）
      * @return {@link Resp}<{@link BaseResp}>
      */
-    public Resp<BaseResp> publishAsset(final Account account, final long assetId, final int isEvidence) {
-        if (account == null || assetId < 1 || isEvidence < 0 || isEvidence > 1) {
+    public Resp<BaseResp> publishAsset(final Account account, final long assetId, final int evidenceType) {
+        if (account == null || assetId < 1 || evidenceType < 0 || evidenceType > 1) {
             Base.logger.warning("publish asset param is invalid");
             return null;
         }
@@ -325,7 +329,7 @@ public class Asset {
                 put("sign", sign);
                 put("pkey", account.getKeyPair().getJSONPublicKey());
                 put("nonce", String.format("%d", nonce));
-                put("is_evidence", String.format("%d", isEvidence));
+                put("evidence_type", String.format("%d", evidenceType));
             }
         };
 
@@ -829,7 +833,8 @@ public class Asset {
 
         JSONObject obj = JSONObject.parseObject(res.body);
         GetEvidenceInfoResp resp = new GetEvidenceInfoResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getString("create_addr"), obj.getString("tx_id"), obj.getJSONObject("asset_info"), obj.getLong("ctime"));
+                obj.getString("create_addr"), obj.getString("tx_id"), obj.getJSONObject("asset_info"), obj.getLong("ctime"), obj.getString("file_hash"),
+                obj.getString("gh_cert_id"));
         if (resp.errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(
                     String.format("get evidence info failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
