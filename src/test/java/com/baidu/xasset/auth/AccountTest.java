@@ -9,4 +9,13 @@ public class AccountTest {
         Account acc = XchainAccount.newXchainEcdsaAccount(XchainAccount.mnemStrgthStrong, XchainAccount.mnemLangCN);
         System.out.println(acc.getAKAddress());
     }
+
+    @Test
+    public void TestRetrieveAccByMnemonic() {
+        Account acc = XchainAccount.newXchainEcdsaAccount(XchainAccount.mnemStrgthStrong, XchainAccount.mnemLangCN);
+        System.out.println(acc.getAKAddress());
+
+        Account acc1 = XchainAccount.retrieveAccByMnemonic(acc.getMnemonic(), XchainAccount.mnemLangCN);
+        System.out.println(acc1.getAKAddress());
+    }
 }
