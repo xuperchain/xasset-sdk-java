@@ -107,7 +107,7 @@ public class Asset {
      * 注意：文件路径和文件二进制串二选一，默认文件路径
      */
     public UploadFile uploadFile(final Account account, String fileName, String filePath, byte[] dataByte, String property) {
-        if (account == null || ("".equals(filePath) && dataByte == null) || !isValidFileName(fileName)) {
+        if (account == null || ("".equals(filePath) && dataByte == null) || "".equals(fileName)) {
             Base.logger.warning("upload file param invalid");
             return null;
         }
