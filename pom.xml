@@ -6,7 +6,7 @@
 
     <groupId>com.baidu.xuper</groupId>
     <artifactId>xasset-sdk-java</artifactId>
-    <version>1.0</version>
+    <version>1.0.1</version>
 
     <name>xasset-sdk-java</name>
     <url>https://xuper.baidu.com</url>
@@ -171,6 +171,20 @@
             <groupId>com.baidubce</groupId>
             <artifactId>bce-java-sdk</artifactId>
             <version>0.10.161</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
