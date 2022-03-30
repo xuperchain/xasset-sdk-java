@@ -24,7 +24,7 @@ Java(TM) SE Runtime Environment (build 1.8.0_45-b14)
         <dependency>
             <groupId>com.baidu.xuper</groupId>
             <artifactId>xasset-sdk-java</artifactId>
-            <version>1.0</version>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>com.baidu.xuper</groupId>
