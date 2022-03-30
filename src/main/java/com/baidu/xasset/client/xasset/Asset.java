@@ -127,6 +127,7 @@ public class Asset {
         String objectPath = accessInfo.getString("object_path");
 
         BosClientConfiguration config = new BosClientConfiguration();
+        config.setEnableHttpAsyncPut(false);
         config.setCredentials(new DefaultBceSessionCredentials(ak, sk, sessionToken));
         config.setEndpoint(endPoint);
         BosClient client = new BosClient(config);
