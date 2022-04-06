@@ -30,7 +30,7 @@
 //                new String[]{"bos_v1://bucket/object/1000_500"}, new String[]{"bos_v1://bucket/object/1000_500"},
 //                null, null, 0);
 //
-//        Resp<CreateAssetResp> result1 = handle.createAsset(acc1, 10, assetInfo, 0);
+//        Resp<CreateAssetResp> result1 = handle.createAsset(acc1, 10, assetInfo, 0, 0);
 //        long assetId = result1.apiResp.assetId;
 //        System.out.printf("创造资产: %d\n", assetId);
 //        Thread.sleep(1000);
@@ -46,7 +46,7 @@
 //        Thread.sleep(1000);
 //
 //        // 4. 授予数字资产碎片
-//        Resp<GrantShardResp> result4 = handle.grantShard(acc1,assetId, acc2.getAKAddress(), 0);
+//        Resp<GrantShardResp> result4 = handle.grantShard(acc1,assetId, 0, acc2.getAKAddress(), 0, 0);
 //        long shardId = result4.apiResp.shardId;
 //        System.out.printf("授予资产碎片: %d\n", shardId);
 //        Thread.sleep(10000);

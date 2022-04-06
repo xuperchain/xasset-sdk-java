@@ -81,13 +81,16 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        GetStokenResp resp = new GetStokenResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getJSONObject("accessInfo"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("get stoken failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                    res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        GetStokenResp resp = new GetStokenResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
+                obj.getJSONObject("accessInfo"));
 
         Base.logger.info(String.format("get stoken succ.[assetInfo:%s] [url:%s] [request_id:%s] [trace_id:%s]",
                 resp.accessInfo, res.reqUrl, resp.requestId, res.traceId));
@@ -107,7 +110,7 @@ public class Asset {
      * 注意：文件路径和文件二进制串二选一，默认文件路径
      */
     public UploadFile uploadFile(final Account account, String fileName, String filePath, byte[] dataByte, String property) {
-        if (account == null || ("".equals(filePath) && dataByte == null) || !isValidFileName(fileName)) {
+        if (account == null || ("".equals(filePath) && dataByte == null) || "".equals(fileName)) {
             Base.logger.warning("upload file param invalid");
             return null;
         }
@@ -124,6 +127,7 @@ public class Asset {
         String objectPath = accessInfo.getString("object_path");
 
         BosClientConfiguration config = new BosClientConfiguration();
+        config.setEnableHttpAsyncPut(false);
         config.setCredentials(new DefaultBceSessionCredentials(ak, sk, sessionToken));
         config.setEndpoint(endPoint);
         BosClient client = new BosClient(config);
@@ -209,13 +213,16 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        CreateAssetResp resp = new CreateAssetResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getLong("asset_id"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("create asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                    res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        CreateAssetResp resp = new CreateAssetResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
+                obj.getLong("asset_id"));
 
         Base.logger.info(String.format("create asset succ.[asset_id:%d] [url:%s] [request_id:%s] [trace_id:%s]",
                 assetId, res.reqUrl, resp.requestId, res.traceId));
@@ -284,12 +291,15 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("alter asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                    res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
 
         Base.logger.info(String.format("alter asset succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl,
                 resp.requestId, res.traceId));
@@ -347,12 +357,15 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
-            Base.logger.warning(String.format("publish asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                    res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("publish  asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
 
         Base.logger.info(String.format("publish asset succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl,
                 resp.requestId, res.traceId));
@@ -391,13 +404,16 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        QueryAssetResp resp = new QueryAssetResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getJSONObject("meta"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("query asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                    res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        QueryAssetResp resp = new QueryAssetResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
+                obj.getJSONObject("meta"));
 
         Base.logger.info(String.format("query asset succ.[meta:%s] [url:%s] [request_id:%s] [trace_id:%s]", resp.meta,
                 res.reqUrl, resp.requestId, res.traceId));
@@ -442,14 +458,16 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        ListPageResp resp = new ListPageResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getJSONArray("list"), obj.getInteger("total_cnt"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
-            Base.logger.warning(
-                    String.format("list assets by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                            res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("list assets by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        ListPageResp resp = new ListPageResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
+                obj.getJSONArray("list"), obj.getInteger("total_cnt"));
 
         Base.logger.info(String.format(
                 "list assets by addr succ.[list:%s] [total_cnt:%d] [url:%s] [request_id:%s] [trace_id:%s]",
@@ -518,13 +536,16 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        GrantShardResp resp = new GrantShardResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getLong("asset_id"), obj.getLong("shard_id"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("grant shard failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                    res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        GrantShardResp resp = new GrantShardResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
+                obj.getLong("asset_id"), obj.getLong("shard_id"));
 
         Base.logger.info(String.format(
                 "grant shard succ.[asset_id:%s] [shard_id:%s] [to_addr:%s] [url:%s] [request_id:%s] [trace_id:%s]",
@@ -589,13 +610,15 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
-            Base.logger
-                    .warning(String.format("transfer shard failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                            res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("transfer shard failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
 
         Base.logger.info(String.format("transfer shard succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl,
                 resp.requestId, res.traceId));
@@ -636,13 +659,16 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        QueryShardsResp resp = new QueryShardsResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getJSONObject("meta"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
-            Base.logger.warning(String.format("query shards failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                    res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("query shard failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        QueryShardsResp resp = new QueryShardsResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
+                obj.getJSONObject("meta"));
 
         Base.logger.info(String.format("query shards succ.[meta:%s] [url:%s] [request_id:%s] [trace_id:%s]", resp.meta,
                 res.reqUrl, resp.requestId, res.traceId));
@@ -685,14 +711,16 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        ListPageResp resp = new ListPageResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getJSONArray("list"), obj.getInteger("total_cnt"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
-            Base.logger.warning(
-                    String.format("list shards by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                            res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("list shards by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        ListPageResp resp = new ListPageResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
+                obj.getJSONArray("list"), obj.getInteger("total_cnt"));
 
         Base.logger.info(String.format(
                 "list shards by addr succ.[list:%s] [total_cnt:%d] [url:%s] [request_id:%s] [trace_id:%s]", resp.list,
@@ -736,14 +764,16 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        ListCursorResp resp = new ListCursorResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getJSONArray("list"), obj.getInteger("has_more"), obj.getString("cursor"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
-            Base.logger.warning(
-                    String.format("list shards by asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                            res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("list shards by asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        ListCursorResp resp = new ListCursorResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
+                obj.getJSONArray("list"), obj.getInteger("has_more"), obj.getString("cursor"));
 
         Base.logger.info(String.format(
                 "list shards by asset succ.[list:%s] [cursor:%s] [has_more:%d] [url:%s] [request_id:%s] [trace_id:%s]",
@@ -787,13 +817,16 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        ListPageResp resp = new ListPageResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getJSONArray("list"), obj.getInteger("total_cnt"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("history failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                    res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        ListPageResp resp = new ListPageResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
+                obj.getJSONArray("list"), obj.getInteger("total_cnt"));
 
         Base.logger.info(String.format("history succ.[list:%s] [total_cnt:%d] [url:%s] [request_id:%s] [trace_id:%s]",
                 resp.list, resp.totalCnt, res.reqUrl, resp.requestId, res.traceId));
@@ -832,34 +865,23 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        GetEvidenceInfoResp resp = new GetEvidenceInfoResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getString("create_addr"), obj.getString("tx_id"), obj.getJSONObject("asset_info"), obj.getLong("ctime"), obj.getString("file_hash"),
-                obj.getString("gh_cert_id"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
-            Base.logger.warning(
-                    String.format("get evidence info failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                            res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("get evidence info failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
 
+        GetEvidenceInfoResp resp = new GetEvidenceInfoResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
+                obj.getString("create_addr"), obj.getString("tx_id"), obj.getJSONObject("asset_info"), obj.getLong("ctime"),
+                obj.getString("file_hash"), obj.getString("gh_cert_id"));
+
         Base.logger.info(String.format(
-                "get evidence info succ.[create_addr:%s] [tx_id:%s] [asset_info:%s] [ctime:%d] [url:%s] [request_id:%s] [trace_id:%s]",
-                resp.createAddr, resp.txId, resp.assetInfo, resp.cTime, res.reqUrl, resp.requestId,
+                "get evidence info succ.[create_addr:%s] [tx_id:%s] [asset_info:%s] [ctime:%d] [file_hash:%s] [gh_cert_id:%s] [url:%s] [request_id:%s] [trace_id:%s]",
+                resp.createAddr, resp.txId, resp.assetInfo, resp.cTime, resp.fileHash, resp.GhCertId, res.reqUrl, resp.requestId,
                 res.traceId));
         return new Resp<>(resp, res);
-    }
-
-    private Boolean isValidFileName(String fileName) {
-        if ("".equals(fileName)) {
-            return false;
-        }
-        String[] supportImageType = {"jpg", "jpeg", "png", "bmp", "webp", "heic", "gif"};
-        for (String type : supportImageType) {
-            if (fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase().equals(type)) {
-                return true;
-            }
-        }
-        return false;
     }
 }
 
