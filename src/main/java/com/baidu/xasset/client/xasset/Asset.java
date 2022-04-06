@@ -356,7 +356,7 @@ public class Asset {
         long requestId = obj.getLong("request_id");
         int errNo = obj.getIntValue("errno");
         if (errNo != BaseDef.ERRNOSUCC) {
-            Base.logger.warning(String.format("publish  asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+            Base.logger.warning(String.format("publish asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
@@ -417,12 +417,15 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("freeze asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                    res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+                    res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
 
         Base.logger.info(String.format("freeze asset succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl,
                 resp.requestId, res.traceId));
@@ -746,13 +749,16 @@ public class Asset {
         }
 
         JSONObject obj = JSONObject.parseObject(res.body);
-        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger
                     .warning(String.format("consume shard failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                            res.reqUrl, resp.requestId, resp.errNo, res.traceId));
+                            res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
+
+        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
 
         Base.logger.info(String.format("consume shard succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl,
                 resp.requestId, res.traceId));
@@ -805,51 +811,6 @@ public class Asset {
                 obj.getJSONObject("meta"));
 
         Base.logger.info(String.format("query shards succ.[meta:%s] [url:%s] [request_id:%s] [trace_id:%s]", resp.meta,
-                res.reqUrl, resp.requestId, res.traceId));
-        return new Resp<>(resp, res);
-    }
-
-    /**
-     * 查询资产流通量
-     *
-     * @param assetId 资产id
-     * @return {@link Resp}<{@link SrdsCirResp}>
-     */
-    public Resp<SrdsCirResp> ShardsInCirculation(final long assetId) {
-        if (assetId < 1) {
-            Base.logger.warning("shard in circulation param is invalid");
-            return null;
-        }
-
-        Map<String, String> body = new HashMap<String, String>() {
-            {
-                put("asset_id", String.format("%d", assetId));
-            }
-        };
-
-        RequestRes res;
-        try {
-            res = Base.post(Api.SHARDINCIRCULATION, body);
-        } catch (Exception e) {
-            Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
-        }
-
-        JSONObject obj = JSONObject.parseObject(res.body);
-        SrdsCirResp resp = new SrdsCirResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getLong("srdscir_amount"));
-        if (resp.errNo != BaseDef.ERRNOSUCC) {
-            Base.logger.warning(String.format("shard in circulation failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
-                    res.reqUrl, resp.requestId, resp.errNo, res.traceId));
-            return null;
-        }
-
-        Base.logger.info(String.format("shard in circulation succ.[amount:%d] [url:%s] [request_id:%s] [trace_id:%s]", resp.amount,
                 res.reqUrl, resp.requestId, res.traceId));
         return new Resp<>(resp, res);
     }

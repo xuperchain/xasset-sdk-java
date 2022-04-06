@@ -208,28 +208,6 @@ public class XassetDef {
     }
 
     /**
-     * 查询数字资产流通量返回值
-     *
-     * requestId    请求id
-     * errNo        错误码
-     * errMsg       错误信息
-     * amount       数字资产流通量
-     */
-    public static class SrdsCirResp {
-        public long requestId;
-        public int errNo;
-        public String errMsg;
-        public long amount;
-
-        public SrdsCirResp(long requestId, int errNo, String errMsg, long amount) {
-            this.requestId = requestId;
-            this.errNo = errNo;
-            this.errMsg = errMsg;
-            this.amount = amount;
-        }
-    }
-
-    /**
      * 获取资产存证信息返回值
      *
      * requestId    请求id
