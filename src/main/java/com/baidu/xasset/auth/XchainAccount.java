@@ -38,4 +38,15 @@ public class XchainAccount {
     public static Account newXchainEcdsaAccount(int mnemStrgth, int mnemLang) {
         return Account.create(mnemStrgth, mnemLang);
     }
+
+    /**
+     * 通过助记词恢复区块链账户
+     *
+     * @param mnemonic 助记词
+     * @param language 助记词语言类型
+     * @return {@link Account}
+     */
+    public static Account retrieveAccByMnemonic(String mnemonic, int language) {
+        return Account.retrieve(mnemonic, language);
+    }
 }
