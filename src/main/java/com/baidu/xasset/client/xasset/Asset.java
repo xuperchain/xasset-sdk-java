@@ -468,7 +468,6 @@ public class Asset {
 
         ListPageResp resp = new ListPageResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
                 obj.getJSONArray("list"), obj.getInteger("total_cnt"));
-
         Base.logger.info(String.format(
                 "list assets by addr succ.[list:%s] [total_cnt:%d] [url:%s] [request_id:%s] [trace_id:%s]",
                 resp.list, resp.totalCnt, res.reqUrl, resp.requestId, res.traceId));
