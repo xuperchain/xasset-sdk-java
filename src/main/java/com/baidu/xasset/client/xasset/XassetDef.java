@@ -225,10 +225,12 @@ public class XassetDef {
         public String createAddr;
         public String txId;
         public JSONObject assetInfo;
+        public String fileHash;
+        public String GhCertId;
         public long cTime;
 
         GetEvidenceInfoResp(long requestId, int errNo, String errMsg, String createAddr, String txId,
-                            JSONObject assetInfo, long cTime) {
+                            JSONObject assetInfo, long cTime, String fileHash, String GhCertId) {
             this.requestId = requestId;
             this.errNo = errNo;
             this.errMsg = errMsg;
@@ -236,6 +238,8 @@ public class XassetDef {
             this.txId = txId;
             this.assetInfo = assetInfo;
             this.cTime = cTime;
+            this.fileHash = fileHash;
+            this.GhCertId = GhCertId;
         }
     }
 }
