@@ -106,7 +106,7 @@ public class Asset {
     public Resp<BaseResp> bindByUnionId(final String union_id, final String mnemonic) {
         // 参数校验
         if ("".equals(union_id) || "".equals(mnemonic)) {
-            Base.logger.warning("bind by mnemonic param invalid");
+            Base.logger.warning("bind by union_id param invalid");
             return null;
         }
 
@@ -142,7 +142,7 @@ public class Asset {
         long requestId = obj.getLong("request_id");
         int errNo = obj.getIntValue("errno");
         if (errNo != BaseDef.ERRNOSUCC) {
-            Base.logger.warning(String.format("bind by mnemonic failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+            Base.logger.warning(String.format("bind by union_id failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
             return null;
         }
