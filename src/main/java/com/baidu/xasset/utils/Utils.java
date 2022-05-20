@@ -3,13 +3,87 @@ package com.baidu.xasset.utils;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.security.spec.AlgorithmParameterSpec;
 import java.util.Arrays;
 import java.util.Random;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 public class Utils {
+    private static final String CHARSET_NAME = "UTF-8";
+    private static final String AES_NAME = "AES";
+    // 加密模式
+    public static final String ALGORITHM = "AES/CBC/PKCS7Padding";
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
+
+    /**
+     * 加密
+     *
+     * @param content
+     * @param key
+     * @return
+     */
+    public static String encrypt(String key, String content) {
+        byte[] result = null;
+        try {
+            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            int base = 16;
+            byte[] keyBytes = key.getBytes(CHARSET_NAME);
+            if (keyBytes.length % base != 0) {
+                int groups = keyBytes.length / base + (keyBytes.length % base != 0 ? 1 : 0);
+                byte[] temp = new byte[groups * base];
+                Arrays.fill(temp, (byte) 0);
+                System.arraycopy(keyBytes, 0, temp, 0, keyBytes.length);
+                keyBytes = temp;
+            }
+            SecretKeySpec keySpec = new SecretKeySpec(keyBytes, AES_NAME);
+            AlgorithmParameterSpec paramSpec = new IvParameterSpec(Arrays.copyOfRange(keyBytes, 0, 16));
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec, paramSpec);
+            result = cipher.doFinal(content.getBytes(CHARSET_NAME));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Base64.encodeBase64URLSafeString(result);
+    }
+
+    /**
+     * 解密
+     *
+     * @param content
+     * @param key
+     * @return
+     */
+    public static String decrypt(String key, String content) {
+        try {
+            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            int base = 16;
+            byte[] keyBytes = key.getBytes(CHARSET_NAME);
+            if (keyBytes.length % base != 0) {
+                int groups = keyBytes.length / base + (keyBytes.length % base != 0 ? 1 : 0);
+                byte[] temp = new byte[groups * base];
+                Arrays.fill(temp, (byte) 0);
+                System.arraycopy(keyBytes, 0, temp, 0, keyBytes.length);
+                keyBytes = temp;
+            }
+            SecretKeySpec keySpec = new SecretKeySpec(keyBytes, AES_NAME);
+            AlgorithmParameterSpec paramSpec = new IvParameterSpec(Arrays.copyOfRange(keyBytes, 0, 16));
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, paramSpec);
+            return new String(cipher.doFinal(Base64.decodeBase64(content)), CHARSET_NAME);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return StringUtils.EMPTY;
+    }
+
     public static long genAssetId(long appId) {
         return genIdHelp(appId, 0);
     }

@@ -20,4 +20,7 @@ class Api {
     final static String GETEVIDENCEINFO = "/xasset/horae/v1/getevidenceinfo";
     final static String FREEZEASSET = "/xasset/horae/v1/freeze";
     final static String CONSUMESHARD = "/xasset/horae/v1/consume";
+
+    final static String BDBOXREGISTER = "/xasset/did/v1/bdboxregister";
+    final static String BINDBYUNIONID = "/xasset/did/v1/bindbyunionid";
 }

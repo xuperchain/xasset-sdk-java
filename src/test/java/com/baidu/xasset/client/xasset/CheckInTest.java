@@ -20,9 +20,17 @@
 //
 //    @Test
 //    public void TestE2E() throws Exception {
+//        // 离线生成区块链账户
 //        Account acc1 = XchainAccount.newXchainEcdsaAccount(2, 1);
 //        Account acc2 = XchainAccount.newXchainEcdsaAccount(2, 1);
 //        Asset handle = new Asset(Config.getXassetConfig(), Logger.getGlobal());
+//
+//        // 使用手百小程序生成区块链账户
+//        Resp<BdBoxRegisterResp> result = handle.bdboxRegister("open_id", "app_key");
+//        System.out.printf("区块链账户地址: %s\n", result.apiResp.address);
+//
+//        // 第三方应用绑定区块链账户
+//        handle.bindByUnionId("union_id", "mnemonic");
 //
 //        // 1. 创造数字资产
 //        AssetInfo assetInfo = new AssetInfo(XassetDef.ASSETCATEART, "welcome",

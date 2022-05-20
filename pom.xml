@@ -6,7 +6,7 @@
 
     <groupId>com.baidu.xuper</groupId>
     <artifactId>xasset-sdk-java</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <name>xasset-sdk-java</name>
     <url>https://xuper.baidu.com</url>
