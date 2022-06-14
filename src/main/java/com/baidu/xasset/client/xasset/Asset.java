@@ -38,21 +38,21 @@ public class Asset {
     /**
      * 通过手百小程序注册链上账户（接口内部会帮助进行SK加解密）
      *
-     * @param open_id 手百小程序openid
-     * @param app_key 手百小程序app_key
+     * @param openId 手百小程序openid
+     * @param appKey 手百小程序app_key
      * @return {@link Resp}<{@link BdBoxRegisterResp}
      */
-    public Resp<BdBoxRegisterResp> bdboxRegister(final String open_id, final String app_key) {
+    public Resp<BdBoxRegisterResp> bdboxRegister(final String openId, final String appKey) {
         // 参数校验
-        if ("".equals(open_id) || "".equals(app_key)) {
+        if (isNullOrEmpty(openId) || isNullOrEmpty(appKey)) {
             Base.logger.warning("bdbox register param invalid");
             return null;
         }
 
         // 使用 账户sk 加密 open_id & app_key
         String sk = Base.getConfig().Credentials.SecreteAccessKey;
-        String encryptOpenId = Utils.encrypt(sk, open_id);
-        String encryptAppKey = Utils.encrypt(sk, app_key);
+        String encryptOpenId = Utils.encrypt(sk, openId);
+        String encryptAppKey = Utils.encrypt(sk, appKey);
 
         // 设置请求参数
         Map<String, String> body = new HashMap<String, String>() {
@@ -100,20 +100,20 @@ public class Asset {
     /**
      * 第三方应用绑定链上账户（接口内部会帮助进行SK加解密）
      *
-     * @param union_id 第三方应用通过OAuth获取到的union_id
+     * @param unionId 第三方应用通过OAuth获取到的union_id
      * @param mnemonic 待绑定区块链账户助记词
      * @return {@link Resp}<{@link BaseResp}
      */
-    public Resp<BaseResp> bindByUnionId(final String union_id, final String mnemonic) {
+    public Resp<BaseResp> bindByUnionId(final String unionId, final String mnemonic) {
         // 参数校验
-        if ("".equals(union_id) || "".equals(mnemonic)) {
+        if (isNullOrEmpty(unionId) || isNullOrEmpty(mnemonic)) {
             Base.logger.warning("bind by union_id param invalid");
             return null;
         }
 
-        // 使用 账户sk 加密 uniond_id & mnemonic
+        // 使用 账户sk 加密 union_id & mnemonic
         String sk = Base.getConfig().Credentials.SecreteAccessKey;
-        String encryptUnionId = Utils.encrypt(sk, union_id);
+        String encryptUnionId = Utils.encrypt(sk, unionId);
         String encryptMnemonic = Utils.encrypt(sk, mnemonic);
 
         // 设置请求参数
@@ -231,7 +231,7 @@ public class Asset {
      * 注意：文件路径和文件二进制串二选一，默认文件路径
      */
     public UploadFile uploadFile(final Account account, String fileName, String filePath, byte[] dataByte, String property) {
-        if (account == null || ("".equals(filePath) && dataByte == null) || "".equals(fileName)) {
+        if (account == null || (isNullOrEmpty(filePath) && dataByte == null) || isNullOrEmpty(fileName)) {
             Base.logger.warning("upload file param invalid");
             return null;
         }
@@ -285,7 +285,7 @@ public class Asset {
      */
     public Resp<CreateAssetResp> createAsset(final Account account, final long amount, AssetInfo assetInfo, final long userId, final long price) {
         // check param
-        if (account == null || amount < 0 || assetInfo == null || assetInfo.assetCate < XassetDef.ASSETCATEART || "".equals(assetInfo.title) || assetInfo.thumb == null || "".equals(assetInfo.shortDesc)) {
+        if (account == null || amount < 0 || assetInfo == null || assetInfo.assetCate < XassetDef.ASSETCATEART || isNullOrEmpty(assetInfo.title) || assetInfo.thumb == null || isNullOrEmpty(assetInfo.shortDesc)) {
             Base.logger.warning("create asset param is invalid");
             return null;
         }
@@ -623,7 +623,7 @@ public class Asset {
      * @return {@link Resp}<{@link ListPageResp}>
      */
     public Resp<ListPageResp> listAssetsByAddr(final int status, final String addr, final int page, final int limit) {
-        if ("".equals(addr) || page < 1 || limit < 0 || limit > BaseDef.MAXLIMIT) {
+        if (isNullOrEmpty(addr) || page < 1 || limit < 0 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("list assets by addr param is invalid");
             return null;
         }
@@ -675,7 +675,7 @@ public class Asset {
             list[i] = new AssetMeta(meta.getLongValue("asset_id"), meta.getIntValue("asset_cate"), meta.getString("title"), thumb, meta.getString("short_desc"), meta.getString("long_desc"), meta.getJSONArray("img_desc"), meta.getJSONArray("asset_url"), meta.getIntValue("amount"), meta.getLongValue("price"), meta.getIntValue("status"), meta.getString("asset_ext"), meta.getString("create_addr"), meta.getLongValue("group_id"), meta.getString("tx_id"));
         }
 
-        ListPageResp resp = new ListPageResp(requestId, errNo, obj.getString("errmsg"), list, obj.getInteger("total_cnt"));
+        ListPageResp resp = new ListPageResp(requestId, errNo, obj.getString("errmsg"), list, obj.getIntValue("total_cnt"));
 
         Base.logger.info(String.format(
                 "list assets by addr succ.[list:%s] [total_cnt:%d] [url:%s] [request_id:%s] [trace_id:%s]",
@@ -695,7 +695,7 @@ public class Asset {
      * @return {@link Resp}<{@link GrantShardResp}>
      */
     public Resp<GrantShardResp> grantShard(final Account account, final long assetId, long shardId, final String toAddr, final long toUserId, final long price) {
-        if (account == null || assetId < 1 || "".equals(toAddr)) {
+        if (account == null || assetId < 1 || isNullOrEmpty(toAddr)) {
             Base.logger.warning("grant shard param is invalid");
             return null;
         }
@@ -753,7 +753,7 @@ public class Asset {
         }
 
         GrantShardResp resp = new GrantShardResp(requestId, errNo, obj.getString("errmsg"),
-                obj.getLong("asset_id"), obj.getLong("shard_id"));
+                obj.getLongValue("asset_id"), obj.getLongValue("shard_id"));
 
         Base.logger.info(String.format(
                 "grant shard succ.[asset_id:%s] [shard_id:%s] [to_addr:%s] [url:%s] [request_id:%s] [trace_id:%s]",
@@ -773,7 +773,7 @@ public class Asset {
      * @return {@link Resp}<{@link BaseResp}>
      */
     public Resp<BaseResp> transferShard(final Account account, final long assetId, final long shardId, final String toAddr, final long toUserId, final long price) {
-        if (account == null || assetId < 1 || shardId < 1 || "".equals(toAddr)) {
+        if (account == null || assetId < 1 || shardId < 1 || isNullOrEmpty(toAddr)) {
             Base.logger.warning("transfer shard param is invalid");
             return null;
         }
@@ -986,7 +986,7 @@ public class Asset {
      * @return {@link Resp}<{@link ListPageResp}>
      */
     public Resp<ListPageResp> listShardsAddr(final String addr, final int page, final int limit) {
-        if ("".equals(addr) || page < 1 || limit < 1 || limit > BaseDef.MAXLIMIT) {
+        if (isNullOrEmpty(addr) || page < 1 || limit < 1 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("list shards by addr param is invalid");
             return null;
         }
@@ -1212,6 +1212,12 @@ public class Asset {
                 resp.createAddr, resp.txId, resp.assetInfo, resp.cTime, res.reqUrl, resp.requestId,
                 res.traceId));
         return new Resp<>(resp, res);
+    }
+
+    public static boolean isNullOrEmpty(String str) {
+        if(str != null && !str.isEmpty())
+            return false;
+        return true;
     }
 }
 
