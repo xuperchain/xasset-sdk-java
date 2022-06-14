@@ -73,24 +73,16 @@
 //        Resp<GetEvidenceInfoResp> result7 = handle.getEvidenceInfo(assetId);
 //        System.out.printf("获取存证信息: %s\n", result7.apiResp.assetInfo);
 //
-//        // 8. 查询资产流通量
-//        Resp<SrdsCirResp> result8 = handle.ShardsInCirculation(assetId);
-//        System.out.printf("流通量: %d\n", result8.apiResp.amount);
-//
-//        // 9. 核销数字资产碎片
+//        // 8. 核销数字资产碎片
 //        handle.consumeShard(acc1, acc2, assetId, shardId);
 //        Thread.sleep(1000);
 //
-//        // 10. 查询资产流通量
-//        Resp<SrdsCirResp> result10 = handle.ShardsInCirculation(assetId);
-//        System.out.printf("流通量: %d\n", result10.apiResp.amount);
-//
-//        // 11. 冻结数字资产
+//        // 9. 冻结数字资产
 //        handle.freezeAsset(assetId, acc1);
 //
-//        // 12. 再次授予数字资产碎片
-//        Resp<GrantShardResp> result12 = handle.grantShard(acc1,assetId, 0, acc2.getAKAddress(), 0, 0);
-//        shardId = result4.apiResp.shardId;
+//        // 10. 再次授予数字资产碎片
+//        Resp<GrantShardResp> result10 = handle.grantShard(acc1,assetId, 0, acc2.getAKAddress(), 0, 0);
+//        shardId = result10.apiResp.shardId;
 //        System.out.printf("授予资产碎片: %d\n", shardId);
 //    }
 //}

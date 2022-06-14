@@ -6,7 +6,7 @@
 
 ## 使用说明
 
-- 1.从平台申请获得到API准入[**AK/SK**](https://cloud.baidu.com/doc/Reference/s/jjwvz2e3p)。注意AK/SK是准入凭证，不要泄露，不要下发或配置在客户端使用。
+- 1.从平台申请获得到API准入[**AK/SK**](https://cloud.baidu.com/product/xuperasset.html)。注意AK/SK是准入凭证，不要泄露，不要下发或配置在客户端使用。
 - 2.使用Maven安装，在Maven的pom.xml文件中添加xasset-sdk-java的依赖。
 - 3.接入联调环境联调测试，测试通过后更换到线上环境，完成接入。
 
@@ -24,7 +24,7 @@ Java(TM) SE Runtime Environment (build 1.8.0_45-b14)
         <dependency>
             <groupId>com.baidu.xuper</groupId>
             <artifactId>xasset-sdk-java</artifactId>
-            <version>1.0.3</version>
+            <version>1.0.4</version>
         </dependency>
         <dependency>
             <groupId>com.baidu.xuper</groupId>

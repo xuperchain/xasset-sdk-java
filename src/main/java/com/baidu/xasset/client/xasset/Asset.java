@@ -78,7 +78,7 @@ public class Asset {
 
         // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
-        long requestId = obj.getLong("request_id");
+        long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("bdbox register failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
@@ -88,8 +88,8 @@ public class Asset {
 
         // 使用 账户sk 解密区块链账户助记词
         String mnemonic = Utils.decrypt(sk, obj.getString("mnemonic"));
-        BdBoxRegisterResp resp = new BdBoxRegisterResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
-                obj.getString("address"), mnemonic, obj.getInteger("is_new"));
+        BdBoxRegisterResp resp = new BdBoxRegisterResp(requestId, errNo, obj.getString("errmsg"),
+                obj.getString("address"), mnemonic, obj.getIntValue("is_new"));
 
         Base.logger.info(String.format("bdbox register succ.[address:%s] [mnemonic:%s] [is_new:%d] [url:%s] [request_id:%s] [trace_id:%s]",
                 resp.address, resp.mnemonic, resp.isNew, res.reqUrl, resp.requestId, res.traceId));
@@ -140,7 +140,7 @@ public class Asset {
 
         // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
-        long requestId = obj.getLong("request_id");
+        long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("bind by union_id failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
@@ -148,7 +148,7 @@ public class Asset {
             return null;
         }
 
-        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
+        BaseResp resp = new BaseResp(requestId, errNo, obj.getString("errmsg"));
         Base.logger.info(String.format("bind by union_id succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl, resp.requestId, res.traceId));
         return new Resp<>(resp, res);
     }
@@ -836,7 +836,7 @@ public class Asset {
     /**
      * 核销数字资产碎片
      *
-     * @param cAccount  资产创建者区块链账户
+     * @param cAccount 资产创建者区块链账户
      * @param uAccount 资产碎片拥有者账户
      * @param assetId  资产id
      * @param shardId  碎片id
