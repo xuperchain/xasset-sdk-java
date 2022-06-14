@@ -1,7 +1,5 @@
 package com.baidu.xasset.client.base;
 
-import com.alibaba.fastjson.JSONArray;
-
 /**
  * 通用基础服务定义
  */
@@ -68,15 +66,15 @@ public class BaseDef {
      * hasMore      是否有更多数据。0：没有 1：有
      * cursor       分页游标。下次请求时带上
      */
-    public static class ListCursorResp {
+    public static class ListCursorResp<T> {
         public long requestId;
         public int errNo;
         public String errMsg;
-        public JSONArray list;
+        public T list;
         public int hasMore;
         public String cursor;
 
-        public ListCursorResp(long requestId, int errNo, String errMsg, JSONArray list, int hasMore,
+        public ListCursorResp(long requestId, int errNo, String errMsg, T list, int hasMore,
                               String cursor) {
             this.requestId = requestId;
             this.errNo = errNo;
@@ -96,14 +94,14 @@ public class BaseDef {
      * list         数据列表
      * totalCnt     总数据数量
      */
-    public static class ListPageResp {
+    public static class ListPageResp<T> {
         public long requestId;
         public int errNo;
         public String errMsg;
-        public JSONArray list;
+        public T list;
         public int totalCnt;
 
-        public ListPageResp(long requestId, int errNo, String errMsg, JSONArray list, int totalCnt) {
+        public ListPageResp(long requestId, int errNo, String errMsg, T list, int totalCnt) {
             this.requestId = requestId;
             this.errNo = errNo;
             this.errMsg = errMsg;
