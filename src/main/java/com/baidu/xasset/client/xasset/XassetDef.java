@@ -77,6 +77,35 @@ public class XassetDef {
     }
 
     /**
+     * 通过手百小程序注册链上账户返回值
+     *
+     * requestId    请求id
+     * errNo        错误码
+     * errMsg       错误信息
+     * address      区块链账户地址
+     * mnemonic     区块链账户助记词
+     * isNew        是否是新账户 0：老账户 1：新账户
+     */
+    public static class BdBoxRegisterResp {
+        public long requestId;
+        public int errNo;
+        public String errMsg;
+        public String address;
+        public String mnemonic;
+        public int isNew;
+
+
+        BdBoxRegisterResp(long requestId, int errNo, String errMsg, String address, String mnemonic, int isNew) {
+            this.requestId = requestId;
+            this.errNo = errNo;
+            this.errMsg = errMsg;
+            this.address = address;
+            this.mnemonic = mnemonic;
+            this.isNew = isNew;
+        }
+    }
+
+    /**
      * 获取访问BOS临时STS资源返回值
      *
      * requestId    请求id
