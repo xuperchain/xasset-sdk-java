@@ -35,6 +35,124 @@ public class Asset {
     }
 
     /**
+     * 通过手百小程序注册链上账户（接口内部会帮助进行SK加解密）
+     *
+     * @param open_id 手百小程序openid
+     * @param app_key 手百小程序app_key
+     * @return {@link Resp}<{@link BdBoxRegisterResp}
+     */
+    public Resp<BdBoxRegisterResp> bdboxRegister(final String open_id, final String app_key) {
+        // 参数校验
+        if ("".equals(open_id) || "".equals(app_key)) {
+            Base.logger.warning("bdbox register param invalid");
+            return null;
+        }
+
+        // 使用 账户sk 加密 open_id & app_key
+        String sk = Base.getConfig().Credentials.SecreteAccessKey;
+        String encryptOpenId = Utils.encrypt(sk, open_id);
+        String encryptAppKey = Utils.encrypt(sk, app_key);
+
+        // 设置请求参数
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("open_id", encryptOpenId);
+                put("app_key", encryptAppKey);
+            }
+        };
+
+        // 发送请求
+        RequestRes res;
+        try {
+            res = Base.post(Api.BDBOXREGISTER, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        // 解析结果
+        JSONObject obj = JSONObject.parseObject(res.body);
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("bdbox register failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
+            return null;
+        }
+
+        // 使用 账户sk 解密区块链账户助记词
+        String mnemonic = Utils.decrypt(sk, obj.getString("mnemonic"));
+        BdBoxRegisterResp resp = new BdBoxRegisterResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"),
+                obj.getString("address"), mnemonic, obj.getInteger("is_new"));
+
+        Base.logger.info(String.format("bdbox register succ.[address:%s] [mnemonic:%s] [is_new:%d] [url:%s] [request_id:%s] [trace_id:%s]",
+                resp.address, resp.mnemonic, resp.isNew, res.reqUrl, resp.requestId, res.traceId));
+        return new Resp<>(resp, res);
+    }
+
+
+    /**
+     * 第三方应用绑定链上账户（接口内部会帮助进行SK加解密）
+     *
+     * @param union_id 第三方应用通过OAuth获取到的union_id
+     * @param mnemonic 待绑定区块链账户助记词
+     * @return {@link Resp}<{@link BaseResp}
+     */
+    public Resp<BaseResp> bindByUnionId(final String union_id, final String mnemonic) {
+        // 参数校验
+        if ("".equals(union_id) || "".equals(mnemonic)) {
+            Base.logger.warning("bind by union_id param invalid");
+            return null;
+        }
+
+        // 使用 账户sk 加密 uniond_id & mnemonic
+        String sk = Base.getConfig().Credentials.SecreteAccessKey;
+        String encryptUnionId = Utils.encrypt(sk, union_id);
+        String encryptMnemonic = Utils.encrypt(sk, mnemonic);
+
+        // 设置请求参数
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("union_id", encryptUnionId);
+                put("mnemonic", encryptMnemonic);
+            }
+        };
+
+        // 发送请求
+        RequestRes res;
+        try {
+            res = Base.post(Api.BINDBYUNIONID, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        // 解析结果
+        JSONObject obj = JSONObject.parseObject(res.body);
+        long requestId = obj.getLong("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("bind by union_id failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
+            return null;
+        }
+
+        BaseResp resp = new BaseResp(obj.getLong("request_id"), obj.getIntValue("errno"), obj.getString("errmsg"));
+        Base.logger.info(String.format("bind by union_id succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl, resp.requestId, res.traceId));
+        return new Resp<>(resp, res);
+    }
+
+    /**
      * 获取访问BOS临时STS资源
      *
      * @param account 创建资产区块链账户
