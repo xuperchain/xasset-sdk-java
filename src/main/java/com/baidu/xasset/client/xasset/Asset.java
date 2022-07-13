@@ -1175,12 +1175,13 @@ public class Asset {
     /**
      * 【碎片查询】分页拉取指定address下的藏品变更记录
      *
-     * @param addr   要查询的区块链账户地址
-     * @param cursor 分页游标，首页设置空字符串（可选）
-     * @param limit  每页拉取数量，默认30，最多50（可选）
+     * @param addr      要查询的区块链账户地址
+     * @param cursor    分页游标，首页设置空字符串（可选）
+     * @param limit     每页拉取数量，默认30，最多50（可选）
+     * @param opTypes   要查询的操作类型，[]int格式JSON串，1:授予 2:转出 3:转入 4:核销
      * @return {@link Resp}<{@link ListCursorResp}>
      */
-    public Resp<ListCursorResp> listDiffByAddr(final String addr, final String cursor, final int limit) {
+    public Resp<ListCursorResp> listDiffByAddr(final String addr, final String cursor, final int limit, final String opTypes) {
         if (isNullOrEmpty(addr) || limit < 1 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("list diff by addr param is invalid");
             return null;
@@ -1191,6 +1192,7 @@ public class Asset {
                 put("addr", addr);
                 put("cursor", cursor);
                 put("limit", String.format("%d", limit));
+                put("op_types", opTypes);
             }
         };
 
@@ -1537,13 +1539,14 @@ public class Asset {
     /**
      * 【应用场景】拉取address下的藏品变更记录
      *
-     * @param addr   要查询的区块链账户地址
-     * @param token  listaddr接口下发的授权token
-     * @param cursor 分页游标，首页设置空字符串（可选）
-     * @param limit  每页拉取数量，默认30，最多50（可选）
+     * @param addr      要查询的区块链账户地址
+     * @param token     listaddr接口下发的授权token
+     * @param cursor    分页游标，首页设置空字符串（可选）
+     * @param limit     每页拉取数量，默认30，最多50（可选）
+     * @param opTypes   要查询的操作类型，[]int格式JSON串，1:授予 2:转出 3:转入 4:核销
      * @return {@link Resp}<{@link ListCursorResp}>
      */
-    public Resp<ListCursorResp> scenelistDiffByAddr(final String addr, final String token, final String cursor, final int limit) {
+    public Resp<ListCursorResp> scenelistDiffByAddr(final String addr, final String token, final String cursor, final int limit, final String opTypes) {
         if (isNullOrEmpty(addr) || isNullOrEmpty(token) || limit < 1 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("scene list diff by addr param is invalid");
             return null;
@@ -1555,6 +1558,7 @@ public class Asset {
                 put("token", token);
                 put("cursor", cursor);
                 put("limit", String.format("%d", limit));
+                put("op_types", opTypes);
             }
         };
 

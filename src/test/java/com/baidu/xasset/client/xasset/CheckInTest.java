@@ -5,7 +5,6 @@
 //import com.baidu.xasset.client.base.BaseDef.Resp;
 //import com.baidu.xuper.api.Account;
 //import com.baidu.xasset.client.xasset.XassetDef.*;
-//import com.baidubce.services.ses.model.SendEmailRequest;
 //import org.junit.Test;
 //
 //import java.util.logging.Logger;
@@ -108,7 +107,7 @@
 //        System.out.println(result17.apiResp.result.get("623062333210793858").intValue());
 //
 //        // 18. 应用场景拉取addr下藏品变更记录
-//        Resp<BaseDef.ListCursorResp> result18 = handle.scenelistDiffByAddr(list1[0].addr, list1[0].token, "", 10);
+//        Resp<BaseDef.ListCursorResp> result18 = handle.scenelistDiffByAddr(list1[0].addr, list1[0].token, "", 10, "[1,3]");
 //        ShardDiffInfo[] list3 = (ShardDiffInfo[]) result18.apiResp.list;
 //        System.out.println(list3.length);
 //
