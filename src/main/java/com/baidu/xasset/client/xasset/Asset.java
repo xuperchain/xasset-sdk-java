@@ -35,8 +35,14 @@ public class Asset {
         this.xassetBaseClient = new Base(cfg, logger);
     }
 
+    public static boolean isNullOrEmpty(String str) {
+        if (str != null && !str.isEmpty())
+            return false;
+        return true;
+    }
+
     /**
-     * 通过手百小程序注册链上账户（接口内部会帮助进行SK加解密）
+     * 【身份管理】通过手百小程序注册链上账户（接口内部会帮助进行SK加解密）
      *
      * @param openId 手百小程序openid
      * @param appKey 手百小程序app_key
@@ -96,11 +102,69 @@ public class Asset {
         return new Resp<>(resp, res);
     }
 
+    /**
+     * 【身份管理】手百小程序绑定已有链上账户（接口内部会帮助进行SK加解密）
+     *
+     * @param openId   手百小程序openid
+     * @param appKey   手百小程序app_key
+     * @param mnemonic 待绑定区块链账户助记词
+     * @return {@link Resp}<{@link BaseResp}
+     */
+    public Resp<BaseResp> bdboxBind(final String openId, final String appKey, final String mnemonic) {
+        // 参数校验
+        if (isNullOrEmpty(openId) || isNullOrEmpty(appKey) || isNullOrEmpty(mnemonic)) {
+            Base.logger.warning("bdbox bind param invalid");
+            return null;
+        }
+
+        // 使用 账户sk 加密 open_id & app_key & mnemonic
+        String sk = Base.getConfig().Credentials.SecreteAccessKey;
+        String encryptOpenId = Utils.encrypt(sk, openId);
+        String encryptAppKey = Utils.encrypt(sk, appKey);
+        String encryptMnemonic = Utils.encrypt(sk, mnemonic);
+
+        // 设置请求参数
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("open_id", encryptOpenId);
+                put("app_key", encryptAppKey);
+                put("mnemonic", encryptMnemonic);
+            }
+        };
+
+        // 发送请求
+        RequestRes res;
+        try {
+            res = Base.post(Api.BDBOXBIND, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        // 解析结果
+        JSONObject obj = JSONObject.parseObject(res.body);
+        long requestId = obj.getLongValue("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("bdbox bind failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
+            return null;
+        }
+
+        BaseResp resp = new BaseResp(requestId, errNo, obj.getString("errmsg"));
+        Base.logger.info(String.format("bdbox bind succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl, resp.requestId, res.traceId));
+        return new Resp<>(resp, res);
+    }
 
     /**
-     * 第三方应用绑定链上账户（接口内部会帮助进行SK加解密）
+     * 【身份管理】第三方应用绑定链上账户（接口内部会帮助进行SK加解密）
      *
-     * @param unionId 第三方应用通过OAuth获取到的union_id
+     * @param unionId  第三方应用通过OAuth获取到的union_id
      * @param mnemonic 待绑定区块链账户助记词
      * @return {@link Resp}<{@link BaseResp}
      */
@@ -154,7 +218,7 @@ public class Asset {
     }
 
     /**
-     * 获取访问BOS临时STS资源
+     * 【资产登记】获取访问BOS临时STS资源
      *
      * @param account 创建资产区块链账户
      * @return {@link Resp}<{@link GetStokenResp}>
@@ -219,7 +283,7 @@ public class Asset {
     }
 
     /**
-     * BOS上传文件
+     * 【资产登记】BOS上传文件
      *
      * @param account  创建资产区块链账户
      * @param fileName 文件名称
@@ -274,7 +338,7 @@ public class Asset {
     }
 
     /**
-     * 创建数字资产
+     * 【资产登记】创建数字资产
      *
      * @param account   创建资产区块链账户
      * @param amount    数字资产数量。0：无限授予碎片
@@ -349,7 +413,7 @@ public class Asset {
     }
 
     /**
-     * 修改未发行的数字资产
+     * 【资产登记】修改未发行的数字资产
      *
      * @param account   创建资产区块链账户
      * @param assetId   资产id
@@ -424,7 +488,7 @@ public class Asset {
     }
 
     /**
-     * 链上发行数字资产
+     * 【资产登记】链上发行数字资产
      *
      * @param account    创建资产区块链账户
      * @param assetId    资产id
@@ -490,10 +554,10 @@ public class Asset {
     }
 
     /**
-     * 链上冻结数字资产
+     * 【资产冻结】链上冻结数字资产
      *
-     * @param account    创建资产区块链账户
-     * @param assetId    资产id
+     * @param account 创建资产区块链账户
+     * @param assetId 资产id
      * @return {@link Resp}<{@link BaseResp}>
      */
     public Resp<BaseResp> freezeAsset(final long assetId, final Account account) {
@@ -554,7 +618,7 @@ public class Asset {
     }
 
     /**
-     * 查询数字资产详情
+     * 【资产查询】查询数字资产详情
      *
      * @param assetId 资产id
      * @return {@link Resp}<{@link QueryAssetResp}>
@@ -614,7 +678,7 @@ public class Asset {
     }
 
     /**
-     * 拉取账户创造资产列表
+     * 【资产查询】拉取账户创造资产列表
      *
      * @param addr   要拉取的区块链账户地址
      * @param page   要拉取页数，第一页为1
@@ -684,7 +748,7 @@ public class Asset {
     }
 
     /**
-     * 授予数字资产碎片
+     * 【碎片授予】授予数字资产碎片
      *
      * @param account  创建资产区块链账户
      * @param assetId  资产id
@@ -762,7 +826,7 @@ public class Asset {
     }
 
     /**
-     * 转移数字资产碎片
+     * 【碎片转移】转移数字资产碎片
      *
      * @param account  资产拥有者区块链账户
      * @param assetId  资产id
@@ -834,7 +898,7 @@ public class Asset {
     }
 
     /**
-     * 核销数字资产碎片
+     * 【碎片核销】核销数字资产碎片
      *
      * @param cAccount 资产创建者区块链账户
      * @param uAccount 资产碎片拥有者账户
@@ -914,7 +978,7 @@ public class Asset {
     }
 
     /**
-     * 查询指定资产碎片信息
+     * 【碎片查询】查询指定资产碎片信息
      *
      * @param assetId 资产id
      * @param shardId 碎片id
@@ -978,14 +1042,15 @@ public class Asset {
     }
 
     /**
-     * 分页拉取指定账户持有碎片列表
+     * 【碎片查询】分页拉取指定账户持有碎片列表
      *
-     * @param addr  要拉取的区块链账户地址
-     * @param page  要拉取页数，第一页为1
-     * @param limit 每页拉取数量，默认20，最大50（可选）
+     * @param addr    要拉取的区块链账户地址
+     * @param page    要拉取页数，第一页为1
+     * @param limit   每页拉取数量，默认20，最大50（可选）
+     * @param assetId 拉取指定藏品的碎片列表（可选）
      * @return {@link Resp}<{@link ListPageResp}>
      */
-    public Resp<ListPageResp> listShardsAddr(final String addr, final int page, final int limit) {
+    public Resp<ListPageResp> listShardsByAddr(final String addr, final int page, final int limit, final long assetId) {
         if (isNullOrEmpty(addr) || page < 1 || limit < 1 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("list shards by addr param is invalid");
             return null;
@@ -996,6 +1061,7 @@ public class Asset {
                 put("addr", addr);
                 put("page", String.format("%d", page));
                 put("limit", String.format("%d", limit));
+                put("asset_id", String.format("%d", assetId));
             }
         };
 
@@ -1048,7 +1114,7 @@ public class Asset {
     }
 
     /**
-     * 分页拉取指定资产已授予碎片列表
+     * 【碎片查询】分页拉取指定资产已授予碎片列表
      *
      * @param assetId 资产id
      * @param cursor  分页游标，首页设置空字符串（可选）
@@ -1107,14 +1173,83 @@ public class Asset {
     }
 
     /**
-     * 拉取数字资产历史登记记录
+     * 【碎片查询】分页拉取指定address下的藏品变更记录
+     *
+     * @param addr   要查询的区块链账户地址
+     * @param cursor 分页游标，首页设置空字符串（可选）
+     * @param limit  每页拉取数量，默认30，最多50（可选）
+     * @return {@link Resp}<{@link ListCursorResp}>
+     */
+    public Resp<ListCursorResp> listDiffByAddr(final String addr, final String cursor, final int limit) {
+        if (isNullOrEmpty(addr) || limit < 1 || limit > BaseDef.MAXLIMIT) {
+            Base.logger.warning("list diff by addr param is invalid");
+            return null;
+        }
+
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("addr", addr);
+                put("cursor", cursor);
+                put("limit", String.format("%d", limit));
+            }
+        };
+
+        RequestRes res;
+        try {
+            res = Base.post(Api.LISTDIFFBYADDR, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        JSONObject obj = JSONObject.parseObject(res.body);
+        long requestId = obj.getLongValue("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("list diff by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
+            return null;
+        }
+
+        JSONArray rawList = obj.getJSONArray("list");
+        ShardDiffInfo[] list = new ShardDiffInfo[rawList.size()];
+        for (int i = 0; i < rawList.size(); i++) {
+            JSONObject rawMeta = (JSONObject) rawList.get(i);
+            JSONArray rawThumb = rawMeta.getJSONArray("thumb");
+            Thumb[] thumb = new Thumb[rawThumb.size()];
+            for (int j = 0; j < rawThumb.size(); j++) {
+                JSONObject objThumb = (JSONObject) rawThumb.get(j);
+                JSONObject objUrls = objThumb.getJSONObject("urls");
+                Urls urls = new Urls(objUrls.getString("icon"), objUrls.getString("url1"), objUrls.getString("url2"), objUrls.getString("url3"));
+                thumb[j] = new Thumb(urls, objThumb.getString("width"), objThumb.getString("height"));
+            }
+
+            list[i] = new ShardDiffInfo(rawMeta.getLongValue("asset_id"), rawMeta.getLongValue("shard_id"), rawMeta.getIntValue("operate"), rawMeta.getString("title"), thumb, rawMeta.getLongValue("ctime"));
+        }
+
+        ListCursorResp resp = new ListCursorResp(requestId, errNo, obj.getString("errmsg"), list, obj.getIntValue("has_more"), obj.getString("cursor"));
+
+        Base.logger.info(String.format(
+                "list diff by addr succ.[list:%s] [cursor:%s] [has_more:%d] [url:%s] [request_id:%s] [trace_id:%s]",
+                resp.list, resp.cursor, resp.hasMore, res.reqUrl, resp.requestId, res.traceId));
+        return new Resp<>(resp, res);
+    }
+
+    /**
+     * 【资产记录】拉取数字资产历史登记记录
      *
      * @param assetId 资产id
      * @param page    要拉取页面，第一页为1
      * @param limit   每页拉取数量，默认20，最多50（可选）
+     * @param shardId 查询指定藏品，指定碎片的历史记录（可选）
      * @return {@link Resp}<{@link ListPageResp}>
      */
-    public Resp<ListPageResp> history(final long assetId, final int page, final int limit) {
+    public Resp<ListPageResp> history(final long assetId, final int page, final int limit, final long shardId) {
         if (assetId < 1 || page < 1 || limit < 1 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("history param is invalid");
             return null;
@@ -1125,6 +1260,7 @@ public class Asset {
                 put("asset_id", String.format("%d", assetId));
                 put("page", String.format("%d", page));
                 put("limit", String.format("%d", limit));
+                put("shard_id", String.format("%d", shardId));
             }
         };
 
@@ -1165,7 +1301,7 @@ public class Asset {
     }
 
     /**
-     * 获取资产存证信息
+     * 【存证信息】获取资产存证信息
      *
      * @param assetId 资产id
      * @return {@link Resp}<{@link GetEvidenceInfoResp}>
@@ -1214,10 +1350,325 @@ public class Asset {
         return new Resp<>(resp, res);
     }
 
-    public static boolean isNullOrEmpty(String str) {
-        if(str != null && !str.isEmpty())
-            return false;
-        return true;
+    /**
+     * 【应用场景】拉取账户下允许访问的address列表（接口内部会帮助进行SK加解密）
+     *
+     * @param unionId 第三方应用获取的union_id
+     * @return {@link Resp}<{@link ListAddrResp}>
+     */
+    public Resp<ListAddrResp> scenelistAddr(final String unionId) {
+        if (isNullOrEmpty(unionId)) {
+            Base.logger.warning("scene list addr param is invalid");
+            return null;
+        }
+
+        // 使用 账户sk 加密 union_id
+        String sk = Base.getConfig().Credentials.SecreteAccessKey;
+        String encryptUnionId = Utils.encrypt(sk, unionId);
+
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("union_id", encryptUnionId);
+            }
+        };
+
+        RequestRes res;
+        try {
+            res = Base.post(Api.SCENELISTADDR, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        JSONObject obj = JSONObject.parseObject(res.body);
+        long requestId = obj.getLongValue("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("list addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
+            return null;
+        }
+
+        JSONArray rawList = obj.getJSONArray("list");
+        AddrMeta[] list = new AddrMeta[rawList.size()];
+        for (int i = 0; i < rawList.size(); i++) {
+            JSONObject rawMeta = (JSONObject) rawList.get(i);
+            list[i] = new AddrMeta(rawMeta.getString("addr"), rawMeta.getString("token"), rawMeta.getLongValue("group_id"));
+        }
+
+        ListAddrResp resp = new ListAddrResp(requestId, errNo, obj.getString("errmsg"), list);
+
+
+        Base.logger.info(String.format(
+                "list addr succ.[list:%s] [url:%s] [request_id:%s] [trace_id:%s]", resp.list, res.reqUrl, resp.requestId,
+                res.traceId));
+        return new Resp<ListAddrResp>(resp, res);
+    }
+
+    /**
+     * 【应用场景】拉取address下允许访问的藏品列表
+     *
+     * @param addr   要查询的区块链账户地址
+     * @param token  listaddr接口下发的授权token
+     * @param cursor 分页游标，首页设置空字符串（可选）
+     * @param limit  每页拉取数量，默认30，最多50（可选）
+     * @return {@link Resp}<{@link ListCursorResp}>
+     */
+    public Resp<ListCursorResp> scenelistsdsbyaddr(final String addr, final String token, final String cursor, final int limit) {
+        if (isNullOrEmpty(addr) || isNullOrEmpty(token) || limit < 1 || limit > BaseDef.MAXLIMIT) {
+            Base.logger.warning("scene list sds by addr param is invalid");
+            return null;
+        }
+
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("addr", addr);
+                put("token", token);
+                put("cursor", cursor);
+                put("limit", String.format("%d", limit));
+            }
+        };
+
+        RequestRes res;
+        try {
+            res = Base.post(Api.SCENELISTSHRADSBYADDR, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        JSONObject obj = JSONObject.parseObject(res.body);
+        long requestId = obj.getLongValue("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("list shards by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
+            return null;
+        }
+
+        JSONArray rawList = obj.getJSONArray("list");
+        SceneShardInfo[] list = new SceneShardInfo[rawList.size()];
+        for (int i = 0; i < rawList.size(); i++) {
+            JSONObject rawMeta = (JSONObject) rawList.get(i);
+            JSONArray rawThumb = rawMeta.getJSONArray("thumb");
+            Thumb[] thumb = new Thumb[rawThumb.size()];
+            for (int j = 0; j < rawThumb.size(); j++) {
+                JSONObject objThumb = (JSONObject) rawThumb.get(j);
+                JSONObject objUrls = objThumb.getJSONObject("urls");
+                Urls urls = new Urls(objUrls.getString("icon"), objUrls.getString("url1"), objUrls.getString("url2"), objUrls.getString("url3"));
+                thumb[j] = new Thumb(urls, objThumb.getString("width"), objThumb.getString("height"));
+            }
+
+            list[i] = new SceneShardInfo(rawMeta.getLongValue("asset_id"), rawMeta.getLongValue("shard_id"), rawMeta.getString("title"), thumb, rawMeta.getLongValue("ctime"));
+        }
+
+        ListCursorResp resp = new ListCursorResp(requestId, errNo, obj.getString("errmsg"), list, obj.getIntValue("has_more"), obj.getString("cursor"));
+
+        Base.logger.info(String.format(
+                "list shards by addr succ.[list:%s] [cursor:%s] [has_more:%d] [url:%s] [request_id:%s] [trace_id:%s]",
+                resp.list, resp.cursor, resp.hasMore, res.reqUrl, resp.requestId, res.traceId));
+        return new Resp<>(resp, res);
+    }
+
+    /**
+     * 【应用场景】判断address下是否拥有指定数字藏品
+     *
+     * @param addr     要查询的区块链账户地址
+     * @param token    listaddr接口下发的授权token
+     * @param assetIds 要查询的资产ID列表json字符串，一次查询不超过10个
+     * @return {@link Resp}<{@link HasAssetByAddrResp}>
+     */
+    public Resp<HasAssetByAddrResp> scenehasastbyaddr(final String addr, final String token, final String assetIds) {
+        if (isNullOrEmpty(addr) || isNullOrEmpty(token) || isNullOrEmpty(assetIds)) {
+            Base.logger.warning("scene has asset by addr param is invalid");
+            return null;
+        }
+
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("addr", addr);
+                put("token", token);
+                put("asset_ids", assetIds);
+            }
+        };
+
+        RequestRes res;
+        try {
+            res = Base.post(Api.SCENEHASASSETBYADDR, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        JSONObject obj = JSONObject.parseObject(res.body);
+        long requestId = obj.getLongValue("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("has asset by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
+            return null;
+        }
+
+        Map<String, Integer> result = JSONObject.toJavaObject(obj.getJSONObject("result"), Map.class);
+
+        HasAssetByAddrResp resp = new HasAssetByAddrResp(requestId, errNo, obj.getString("errmsg"), result);
+
+        Base.logger.info(String.format(
+                "has asset by addr succ.[result:%s] [url:%s] [request_id:%s] [trace_id:%s]", resp.result, res.reqUrl, resp.requestId,
+                res.traceId));
+        return new Resp<>(resp, res);
+    }
+
+    /**
+     * 【应用场景】拉取address下的藏品变更记录
+     *
+     * @param addr   要查询的区块链账户地址
+     * @param token  listaddr接口下发的授权token
+     * @param cursor 分页游标，首页设置空字符串（可选）
+     * @param limit  每页拉取数量，默认30，最多50（可选）
+     * @return {@link Resp}<{@link ListCursorResp}>
+     */
+    public Resp<ListCursorResp> scenelistDiffByAddr(final String addr, final String token, final String cursor, final int limit) {
+        if (isNullOrEmpty(addr) || isNullOrEmpty(token) || limit < 1 || limit > BaseDef.MAXLIMIT) {
+            Base.logger.warning("scene list diff by addr param is invalid");
+            return null;
+        }
+
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("addr", addr);
+                put("token", token);
+                put("cursor", cursor);
+                put("limit", String.format("%d", limit));
+            }
+        };
+
+        RequestRes res;
+        try {
+            res = Base.post(Api.SCENELISTDIFFBYADDR, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        JSONObject obj = JSONObject.parseObject(res.body);
+        long requestId = obj.getLongValue("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("list diff by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
+            return null;
+        }
+
+        JSONArray rawList = obj.getJSONArray("list");
+        ShardDiffInfo[] list = new ShardDiffInfo[rawList.size()];
+        for (int i = 0; i < rawList.size(); i++) {
+            JSONObject rawMeta = (JSONObject) rawList.get(i);
+            JSONArray rawThumb = rawMeta.getJSONArray("thumb");
+            Thumb[] thumb = new Thumb[rawThumb.size()];
+            for (int j = 0; j < rawThumb.size(); j++) {
+                JSONObject objThumb = (JSONObject) rawThumb.get(j);
+                JSONObject objUrls = objThumb.getJSONObject("urls");
+                Urls urls = new Urls(objUrls.getString("icon"), objUrls.getString("url1"), objUrls.getString("url2"), objUrls.getString("url3"));
+                thumb[j] = new Thumb(urls, objThumb.getString("width"), objThumb.getString("height"));
+            }
+
+            list[i] = new ShardDiffInfo(rawMeta.getLongValue("asset_id"), rawMeta.getLongValue("shard_id"), rawMeta.getIntValue("operate"), rawMeta.getString("title"), thumb, rawMeta.getLongValue("ctime"));
+        }
+
+        ListCursorResp resp = new ListCursorResp(requestId, errNo, obj.getString("errmsg"), list, obj.getIntValue("has_more"), obj.getString("cursor"));
+
+        Base.logger.info(String.format(
+                "list diff by addr succ.[list:%s] [cursor:%s] [has_more:%d] [url:%s] [request_id:%s] [trace_id:%s]",
+                resp.list, resp.cursor, resp.hasMore, res.reqUrl, resp.requestId, res.traceId));
+        return new Resp<>(resp, res);
+    }
+
+    /**
+     * 【应用场景】查询用户碎片信息
+     *
+     * @param addr    碎片拥有者区块链账户地址
+     * @param token   listaddr接口下发的授权token
+     * @param assetId 资产id
+     * @param shardId 碎片id
+     * @return {@link Resp}<{@link SceneQueryShardsResp}>
+     */
+    public Resp<SceneQueryShardsResp> scenequeryShards(final String addr, final String token, final long assetId, final long shardId) {
+        if (assetId < 1 || shardId < 1 || isNullOrEmpty(addr) || isNullOrEmpty(token)) {
+            Base.logger.warning("scene query shards param is invalid");
+            return null;
+        }
+
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("asset_id", String.format("%d", assetId));
+                put("shard_id", String.format("%d", shardId));
+                put("addr", addr);
+                put("token", token);
+            }
+        };
+
+        RequestRes res;
+        try {
+            res = Base.post(Api.SCENEQUERYSHARDINFO, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        JSONObject obj = JSONObject.parseObject(res.body);
+        long requestId = obj.getLongValue("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("query shard failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
+            return null;
+        }
+
+        JSONObject rawMeta = obj.getJSONObject("meta");
+        JSONArray rawThumb = rawMeta.getJSONArray("thumb");
+
+        Thumb[] thumb = new Thumb[rawThumb.size()];
+        for (int i = 0; i < rawThumb.size(); i++) {
+            JSONObject objThumb = (JSONObject) rawThumb.get(i);
+            JSONObject objUrls = objThumb.getJSONObject("urls");
+            Urls urls = new Urls(objUrls.getString("icon"), objUrls.getString("url1"), objUrls.getString("url2"), objUrls.getString("url3"));
+            thumb[i] = new Thumb(urls, objThumb.getString("width"), objThumb.getString("height"));
+        }
+
+        SceneShardMeta meta = new SceneShardMeta(rawMeta.getLongValue("asset_id"), rawMeta.getLongValue("shard_id"), rawMeta.getString("owner_addr"), rawMeta.getLongValue("price"), rawMeta.getIntValue("status"), rawMeta.getString("tx_id"), rawMeta.getLongValue("ctime"),
+                rawMeta.getString("jump_link"), rawMeta.getString("title"), thumb, rawMeta.getJSONArray("asset_url"), rawMeta.getJSONArray("img_desc"), rawMeta.getString("short_desc"), rawMeta.getString("create_addr"));
+
+        SceneQueryShardsResp resp = new SceneQueryShardsResp(requestId, errNo, obj.getString("errmsg"), meta);
+
+        Base.logger.info(String.format("query shards succ.[meta:%s] [url:%s] [request_id:%s] [trace_id:%s]", resp.meta,
+                res.reqUrl, resp.requestId, res.traceId));
+        return new Resp<>(resp, res);
     }
 }
 

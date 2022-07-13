@@ -16,11 +16,19 @@ class Api {
     final static String QUERYSHARDS = "/xasset/horae/v1/querysds";
     final static String LISTSHARDSBYADDR = "/xasset/horae/v1/listsdsbyaddr";
     final static String LISTSHARDSBYASSET = "/xasset/horae/v1/listsdsbyast";
+    final static String LISTDIFFBYADDR = "/xasset/horae/v1/listdiffbyaddr";
     final static String HISTORYASSET = "/xasset/horae/v1/history";
     final static String GETEVIDENCEINFO = "/xasset/horae/v1/getevidenceinfo";
     final static String FREEZEASSET = "/xasset/horae/v1/freeze";
     final static String CONSUMESHARD = "/xasset/horae/v1/consume";
 
     final static String BDBOXREGISTER = "/xasset/did/v1/bdboxregister";
+    final static String BDBOXBIND = "/xasset/did/v1/bdboxbind";
     final static String BINDBYUNIONID = "/xasset/did/v1/bindbyunionid";
+
+    final static String SCENELISTADDR = "/xasset/scene/v1/listaddr";
+    final static String SCENELISTSHRADSBYADDR = "/xasset/scene/v1/listsdsbyaddr";
+    final static String SCENEHASASSETBYADDR = "/xasset/scene/v1/hasastbyaddr";
+    final static String SCENELISTDIFFBYADDR = "/xasset/scene/v1/listdiffbyaddr";
+    final static String SCENEQUERYSHARDINFO = "/xasset/scene/v1/qrysdsinfo";
 }

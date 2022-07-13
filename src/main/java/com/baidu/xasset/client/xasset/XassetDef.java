@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.baidu.xasset.client.base.BaseDef.RequestRes;
 
+import java.util.Map;
+
 /**
  * 数字资产平台登记SaaS定义
  */
@@ -360,13 +362,13 @@ public class XassetDef {
 
     /**
      * 数字资产碎片详情数据结构
-     *
+     * <p>
      * assetId      资产ID
      * shardId      资产碎片ID
      * ownerAddr    资产碎片拥有者区块链账户地址
      * uid          业务传递的关联ID
      * price        资产碎片交易价格，单位为分
-     * status       资产碎片状态。1:授予中 4:转移中 5: 核销中 6: 已核销 10:异常
+     * status       资产碎片状态。0:已上链 1:授予中 4:转移中 5: 核销中 6: 已核销 10:异常
      * txId         资产碎片上链交易ID
      * assetInfo    碎片资产信息
      * ctime        资产碎片创建时间
@@ -413,13 +415,41 @@ public class XassetDef {
         public String createAddr;
         public long groupId;
 
-        ShardAssetInfo (String title, int assetCate, Thumb[] thumb, String shortDesc, String createAddr, long groupId) {
+        ShardAssetInfo(String title, int assetCate, Thumb[] thumb, String shortDesc, String createAddr, long groupId) {
             this.title = title;
             this.assetCate = assetCate;
             this.thumb = thumb;
             this.shortDesc = shortDesc;
             this.createAddr = createAddr;
             this.groupId = groupId;
+        }
+    }
+
+    /**
+     * 藏品变更记录数据结构
+     * <p>
+     * assetId  资产ID
+     * shardId  碎片ID
+     * operate  资产变更类型
+     * title    资产标题
+     * thumb    资产缩略图
+     * ctime    碎片创建时间
+     */
+    public static class ShardDiffInfo {
+        public long assetId;
+        public long shardId;
+        public int operate;
+        public String title;
+        public Thumb[] thumb;
+        public long ctime;
+
+        ShardDiffInfo(long assetId, long shardId, int operate, String title, Thumb[] thumb, long ctime) {
+            this.assetId = assetId;
+            this.shardId = shardId;
+            this.operate = operate;
+            this.title = title;
+            this.thumb = thumb;
+            this.ctime = ctime;
         }
     }
 
@@ -486,6 +516,146 @@ public class XassetDef {
             this.txId = txId;
             this.assetInfo = assetInfo;
             this.cTime = cTime;
+        }
+    }
+
+    /**
+     * 拉取百度账户下允许访问的address数据结构
+     * <p>
+     * addr     区块链账户地址
+     * token    授权token
+     * groupId  地址所属ID
+     */
+    public static class AddrMeta {
+        public String addr;
+        public String token;
+        public long groupId;
+
+        AddrMeta(String addr, String token, long groupId) {
+            this.addr = addr;
+            this.token = token;
+            this.groupId = groupId;
+        }
+    }
+
+    /**
+     * 应用场景碎片列表数据结构
+     * <p>
+     * assetId  资产ID
+     * shardId  碎片ID
+     * title    资产标题
+     * thumb    资产缩略图
+     * ctime    碎片创建时间
+     */
+    public static class SceneShardInfo {
+        public long assetId;
+        public long shardId;
+        public String title;
+        public Thumb[] thumb;
+        public long ctime;
+
+        SceneShardInfo(long assetId, long shardId, String title, Thumb[] thumb, long ctime) {
+            this.assetId = assetId;
+            this.shardId = shardId;
+            this.title = title;
+            this.thumb = thumb;
+            this.ctime = ctime;
+        }
+    }
+
+    /**
+     * 拉取address下是否拥有指定数字藏品数据结构
+     * <p>
+     * requestId    请求id
+     * errNo        错误码
+     * errMsg       错误信息
+     * result       查询结果
+     */
+    public static class HasAssetByAddrResp {
+        public long requestId;
+        public int errNo;
+        public String errMsg;
+        public Map<String, Integer> result;
+
+        HasAssetByAddrResp(long requestId, int errNo, String errMsg, Map<String, Integer> result) {
+            this.requestId = requestId;
+            this.errNo = errNo;
+            this.errMsg = errMsg;
+            this.result = result;
+        }
+    }
+
+    /**
+     * 应用场景数字资产碎片详情数据结构
+     * <p>
+     * assetId      资产ID
+     * shardId      资产碎片ID
+     * ownerAddr    资产碎片拥有者区块链账户地址
+     * price        资产碎片交易价格，单位为分
+     * status       资产碎片状态。0:已上链 1:授予中 4:转移中 5: 核销中 6: 已核销 10:异常
+     * txId         资产碎片上链交易ID
+     * ctime        资产碎片创建时间
+     * jumpLink     钱包首页跳转链接
+     * title        资产标题
+     * thumb        资产缩略图
+     * assetUrl     资产原文件
+     * imgDesc      资产详情长图
+     * shortDesc    资产短描述
+     * createAddr   资产发行方地址
+     */
+    public static class SceneShardMeta {
+        public long assetId;
+        public long shardId;
+        public String ownerAddr;
+        public long price;
+        public int status;
+        public String txId;
+        public long ctime;
+        public String jumpLink;
+        public String title;
+        public Thumb[] thumb;
+        public JSONArray assetUrl;
+        public JSONArray imgDesc;
+        public String shortDesc;
+        public String createAddr;
+
+        SceneShardMeta(long assetId, long shardId, String ownerAddr, long price, int status, String txId, long ctime, String jumbLink, String title, Thumb[] thumb, JSONArray assetUrl, JSONArray imgDesc, String shortDesc, String createAddr) {
+            this.assetId = assetId;
+            this.shardId = shardId;
+            this.ownerAddr = ownerAddr;
+            this.price = price;
+            this.status = status;
+            this.txId = txId;
+            this.ctime = ctime;
+            this.jumpLink = jumbLink;
+            this.title = title;
+            this.thumb = thumb;
+            this.assetUrl = assetUrl;
+            this.imgDesc = imgDesc;
+            this.shortDesc = shortDesc;
+            this.createAddr = createAddr;
+        }
+    }
+
+    /**
+     * 应用场景查询数字资产碎片详情返回值
+     * <p>
+     * requestId    请求id
+     * errNo        错误码
+     * errMsg       错误信息
+     * meta         数字资产碎片详情
+     */
+    public static class SceneQueryShardsResp {
+        public long requestId;
+        public int errNo;
+        public String errMsg;
+        public SceneShardMeta meta;
+
+        SceneQueryShardsResp(long requestId, int errNo, String errMsg, SceneShardMeta meta) {
+            this.requestId = requestId;
+            this.errNo = errNo;
+            this.errMsg = errMsg;
+            this.meta = meta;
         }
     }
 }
