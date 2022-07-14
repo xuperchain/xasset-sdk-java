@@ -109,4 +109,26 @@ public class BaseDef {
             this.totalCnt = totalCnt;
         }
     }
+
+    /**
+     * 地址列表返回值
+     * <p>
+     * requestId    请求id
+     * errNo        错误码
+     * errMsg       错误信息
+     * list         数据列表
+     */
+    public static class ListAddrResp<T> {
+        public long requestId;
+        public int errNo;
+        public String errMsg;
+        public T list;
+
+        public ListAddrResp(long requestId, int errNo, String errMsg, T list) {
+            this.requestId = requestId;
+            this.errNo = errNo;
+            this.errMsg = errMsg;
+            this.list = list;
+        }
+    }
 }
