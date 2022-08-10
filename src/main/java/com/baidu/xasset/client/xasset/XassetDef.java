@@ -96,7 +96,6 @@ public class XassetDef {
         public String mnemonic;
         public int isNew;
 
-
         BdBoxRegisterResp(long requestId, int errNo, String errMsg, String address, String mnemonic, int isNew) {
             this.requestId = requestId;
             this.errNo = errNo;
@@ -104,6 +103,28 @@ public class XassetDef {
             this.address = address;
             this.mnemonic = mnemonic;
             this.isNew = isNew;
+        }
+    }
+
+    /**
+     * 第三方应用查询链上绑定账户返回值
+     *
+     * requestId    请求id
+     * errNo        错误码
+     * errMsg       错误信息
+     * address      区块链账户地址
+     */
+    public static class GetAddrByUnionIdResp {
+        public long requestId;
+        public int errNo;
+        public String errMsg;
+        public String address;
+
+        GetAddrByUnionIdResp(long requestId, int errNo, String errMsg, String address) {
+            this.requestId = requestId;
+            this.errNo = errNo;
+            this.errMsg = errMsg;
+            this.address = address;
         }
     }
 
