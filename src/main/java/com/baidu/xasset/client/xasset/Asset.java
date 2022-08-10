@@ -218,6 +218,61 @@ public class Asset {
     }
 
     /**
+     * 【身份管理】第三方应用查询链上绑定账户（接口内部会帮助进行SK加解密）
+     *
+     * @param unionId  第三方应用通过OAuth获取到的union_id
+     * @return {@link Resp}<{@link GetAddrByUnionIdResp}
+     */
+    public Resp<GetAddrByUnionIdResp> getAddrByUnionId(final String unionId) {
+        // 参数校验
+        if (isNullOrEmpty(unionId)) {
+            Base.logger.warning("get addr by union_id param invalid");
+            return null;
+        }
+
+        // 使用 账户sk 加密 union_id & mnemonic
+        String sk = Base.getConfig().Credentials.SecreteAccessKey;
+        String encryptUnionId = Utils.encrypt(sk, unionId);
+
+        // 设置请求参数
+        Map<String, String> body = new HashMap<String, String>() {
+            {
+                put("union_id", encryptUnionId);
+            }
+        };
+
+        // 发送请求
+        RequestRes res;
+        try {
+            res = Base.post(Api.GETADDRBYUNIONID, body);
+        } catch (Exception e) {
+            Base.logger.warning("post request xasset failed" + e);
+            return null;
+        }
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            return null;
+        }
+
+        // 解析结果
+        JSONObject obj = JSONObject.parseObject(res.body);
+        long requestId = obj.getLongValue("request_id");
+        int errNo = obj.getIntValue("errno");
+        if (errNo != BaseDef.ERRNOSUCC) {
+            Base.logger.warning(String.format("get addr by union_id failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
+                    res.reqUrl, requestId, errNo, res.traceId));
+            return null;
+        }
+
+        GetAddrByUnionIdResp resp = new GetAddrByUnionIdResp(requestId, errNo, obj.getString("errmsg"),
+                obj.getString("address"));
+
+        Base.logger.info(String.format("get addr by union_id succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl, resp.requestId, res.traceId));
+        return new Resp<>(resp, res);
+    }
+
+    /**
      * 【资产登记】获取访问BOS临时STS资源
      *
      * @param account 创建资产区块链账户

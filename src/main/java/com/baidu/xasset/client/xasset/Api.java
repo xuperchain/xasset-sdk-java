@@ -25,6 +25,7 @@ class Api {
     final static String BDBOXREGISTER = "/xasset/did/v1/bdboxregister";
     final static String BDBOXBIND = "/xasset/did/v1/bdboxbind";
     final static String BINDBYUNIONID = "/xasset/did/v1/bindbyunionid";
+    final static String GETADDRBYUNIONID = "/xasset/did/v1/getaddrbyunionid";
 
     final static String SCENELISTADDR = "/xasset/scene/v1/listaddr";
     final static String SCENELISTSHRADSBYADDR = "/xasset/scene/v1/listsdsbyaddr";
