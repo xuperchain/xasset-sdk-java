@@ -1,6 +1,6 @@
 package com.baidu.xasset.client.base;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import com.baidu.xasset.auth.Signer;
 import com.baidu.xasset.client.base.BaseDef.RequestRes;
 import com.baidu.xasset.common.config.Config.XassetCliConfig;

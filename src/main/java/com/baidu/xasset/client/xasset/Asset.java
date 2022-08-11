@@ -1,7 +1,8 @@
 package com.baidu.xasset.client.xasset;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.TypeReference;
 import com.baidu.xasset.auth.Crypto;
 import com.baidu.xasset.client.base.Base;
 import com.baidu.xasset.client.base.BaseDef;
@@ -1581,7 +1582,7 @@ public class Asset {
             return null;
         }
 
-        Map<String, Integer> result = JSONObject.toJavaObject(obj.getJSONObject("result"), Map.class);
+        Map<String, Integer> result = JSONObject.parseObject(obj.getJSONObject("result").toString(), new TypeReference<Map<String, Integer>>(){});
 
         HasAssetByAddrResp resp = new HasAssetByAddrResp(requestId, errNo, obj.getString("errmsg"), result);
 

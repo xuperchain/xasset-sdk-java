@@ -6,7 +6,7 @@
 
     <groupId>com.baidu.xuper</groupId>
     <artifactId>xasset-sdk-java</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
 
     <name>xasset-sdk-java</name>
     <url>https://xuper.baidu.com</url>
@@ -187,9 +187,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.48</version>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+            <version>2.0.11</version>
         </dependency>
     </dependencies>
 
