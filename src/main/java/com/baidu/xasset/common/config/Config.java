@@ -3,7 +3,6 @@ package com.baidu.xasset.common.config;
 import com.baidubce.auth.SignOptions;
 
 import java.time.Duration;
-import java.util.Date;
 import java.util.HashSet;
 
 public class Config {

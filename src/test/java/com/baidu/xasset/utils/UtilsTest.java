@@ -2,18 +2,13 @@ package com.baidu.xasset.utils;
 
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import static org.junit.Assert.assertNotEquals;
 
 public class UtilsTest {
     @Test
-    public void TestGenAssetId() throws IOException {
+    public void TestGenAssetId() {
         for (int j = 0; j < 10; j++) {
-            long assetId = Utils.genAssetId(300100);
+            long assetId = Utils.genAssetId(10000);
             System.out.println(assetId);
         }
     }
