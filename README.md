@@ -24,7 +24,7 @@ Java(TM) SE Runtime Environment (build 1.8.0_45-b14)
         <dependency>
             <groupId>com.baidu.xuper</groupId>
             <artifactId>xasset-sdk-java</artifactId>
-            <version>1.0.5</version>
+            <version>1.0.7</version>
         </dependency>
         <dependency>
             <groupId>com.baidu.xuper</groupId>
@@ -61,7 +61,7 @@ class XassetCliConfig {
 
 // 初始化配置
 XassetCliConfig cfg = new XassetCliConfig();
-// 配置AK/SK
+// 配置AK/SK 和 AppId
 cfg.SetCredentials(appId, ak, sk);
 // 确认Endpoint, 接入联调环境
 cfg.SetEndPoint("http://120.48.16.137:8360");
@@ -81,7 +81,7 @@ import java.util.logging.Logger;
 
 class Test {
     public static void main(String[] args) {
-        // 配置AK/SK
+        // 配置AK/SK 和 AppId
         long appId = 0;
         String ak = "";
         String sk = "";
