@@ -37,9 +37,7 @@ public class Asset {
     }
 
     public static boolean isNullOrEmpty(String str) {
-        if (str != null && !str.isEmpty())
-            return false;
-        return true;
+        return str == null || str.isEmpty();
     }
 
     /**
@@ -49,11 +47,11 @@ public class Asset {
      * @param appKey 手百小程序app_key
      * @return {@link Resp}<{@link BdBoxRegisterResp}
      */
-    public Resp<BdBoxRegisterResp> bdboxRegister(final String openId, final String appKey) {
+    public Resp<BdBoxRegisterResp> bdboxRegister(final String openId, final String appKey) throws BaseException {
         // 参数校验
         if (isNullOrEmpty(openId) || isNullOrEmpty(appKey)) {
             Base.logger.warning("bdbox register param invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // 使用 账户sk 加密 open_id & app_key
@@ -74,28 +72,30 @@ public class Asset {
         try {
             res = Base.post(Api.BDBOXREGISTER, body);
         } catch (Exception e) {
-            Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
         // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("bdbox register failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         // 使用 账户sk 解密区块链账户助记词
         String mnemonic = Utils.decrypt(sk, obj.getString("mnemonic"));
-        BdBoxRegisterResp resp = new BdBoxRegisterResp(requestId, errNo, obj.getString("errmsg"),
+        BdBoxRegisterResp resp = new BdBoxRegisterResp(requestId, errNo, errMsg,
                 obj.getString("address"), mnemonic, obj.getIntValue("is_new"));
 
         Base.logger.info(String.format("bdbox register succ.[address:%s] [mnemonic:%s] [is_new:%d] [url:%s] [request_id:%s] [trace_id:%s]",
@@ -111,11 +111,11 @@ public class Asset {
      * @param mnemonic 待绑定区块链账户助记词
      * @return {@link Resp}<{@link BaseResp}
      */
-    public Resp<BaseResp> bdboxBind(final String openId, final String appKey, final String mnemonic) {
+    public Resp<BaseResp> bdboxBind(final String openId, final String appKey, final String mnemonic) throws BaseException {
         // 参数校验
         if (isNullOrEmpty(openId) || isNullOrEmpty(appKey) || isNullOrEmpty(mnemonic)) {
             Base.logger.warning("bdbox bind param invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // 使用 账户sk 加密 open_id & app_key & mnemonic
@@ -139,25 +139,28 @@ public class Asset {
             res = Base.post(Api.BDBOXBIND, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
         // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("bdbox bind failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
-        BaseResp resp = new BaseResp(requestId, errNo, obj.getString("errmsg"));
+        BaseResp resp = new BaseResp(requestId, errNo, errMsg);
         Base.logger.info(String.format("bdbox bind succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl, resp.requestId, res.traceId));
         return new Resp<>(resp, res);
     }
@@ -169,11 +172,11 @@ public class Asset {
      * @param mnemonic 待绑定区块链账户助记词
      * @return {@link Resp}<{@link BaseResp}
      */
-    public Resp<BaseResp> bindByUnionId(final String unionId, final String mnemonic) {
+    public Resp<BaseResp> bindByUnionId(final String unionId, final String mnemonic) throws BaseException {
         // 参数校验
         if (isNullOrEmpty(unionId) || isNullOrEmpty(mnemonic)) {
             Base.logger.warning("bind by union_id param invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // 使用 账户sk 加密 union_id & mnemonic
@@ -195,25 +198,28 @@ public class Asset {
             res = Base.post(Api.BINDBYUNIONID, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
         // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("bind by union_id failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
-        BaseResp resp = new BaseResp(requestId, errNo, obj.getString("errmsg"));
+        BaseResp resp = new BaseResp(requestId, errNo, errMsg);
         Base.logger.info(String.format("bind by union_id succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl, resp.requestId, res.traceId));
         return new Resp<>(resp, res);
     }
@@ -224,11 +230,11 @@ public class Asset {
      * @param unionId  第三方应用通过OAuth获取到的union_id
      * @return {@link Resp}<{@link GetAddrByUnionIdResp}
      */
-    public Resp<GetAddrByUnionIdResp> getAddrByUnionId(final String unionId) {
+    public Resp<GetAddrByUnionIdResp> getAddrByUnionId(final String unionId) throws BaseException {
         // 参数校验
         if (isNullOrEmpty(unionId)) {
             Base.logger.warning("get addr by union_id param invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // 使用 账户sk 加密 union_id & mnemonic
@@ -248,26 +254,28 @@ public class Asset {
             res = Base.post(Api.GETADDRBYUNIONID, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
         // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("get addr by union_id failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
-        GetAddrByUnionIdResp resp = new GetAddrByUnionIdResp(requestId, errNo, obj.getString("errmsg"),
-                obj.getString("address"));
+        GetAddrByUnionIdResp resp = new GetAddrByUnionIdResp(requestId, errNo, errMsg, obj.getString("address"));
 
         Base.logger.info(String.format("get addr by union_id succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl, resp.requestId, res.traceId));
         return new Resp<>(resp, res);
@@ -279,10 +287,10 @@ public class Asset {
      * @param account 创建资产区块链账户
      * @return {@link Resp}<{@link GetStokenResp}>
      */
-    public Resp<GetStokenResp> getStoken(final Account account) {
+    public Resp<GetStokenResp> getStoken(final Account account) throws BaseException {
         if (account == null) {
             Base.logger.warning("get stoken param invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // sign
@@ -292,8 +300,8 @@ public class Asset {
         try {
             rawSign = Crypto.xassetSignECDSA(account, signMsg.getBytes());
         } catch (Exception e) {
-            Base.logger.warning("account esdsa sign failed" + e);
-            return null;
+            Base.logger.warning("account ecdsa sign failed" + e);
+            throw new BaseException("ecdsa sign error");
         }
 
         final String sign = rawSign;
@@ -311,27 +319,30 @@ public class Asset {
             res = Base.post(Api.GETSTOKEN, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("get stoken failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         JSONObject info = obj.getJSONObject("accessInfo");
         AccessInfo accessInfo = new AccessInfo(info.getString("bucket"), info.getString("endpoint"), info.getString("object_path"), info.getString("access_key_id"), info.getString("secret_access_key"), info.getString("session_token"), info.getString("createTime"), info.getString("expiration"));
-        GetStokenResp resp = new GetStokenResp(requestId, errNo, obj.getString("errmsg"),
-                accessInfo);
+        GetStokenResp resp = new GetStokenResp(requestId, errNo, errMsg, accessInfo);
 
         Base.logger.info(String.format("get stoken succ.[assetInfo:%s] [url:%s] [request_id:%s] [trace_id:%s]",
                 resp.accessInfo, res.reqUrl, resp.requestId, res.traceId));
@@ -350,10 +361,10 @@ public class Asset {
      * <p>
      * 注意：文件路径和文件二进制串二选一，默认文件路径
      */
-    public UploadFile uploadFile(final Account account, String fileName, String filePath, byte[] dataByte, String property) {
+    public UploadFile uploadFile(final Account account, String fileName, String filePath, byte[] dataByte, String property) throws BaseException {
         if (account == null || (isNullOrEmpty(filePath) && dataByte == null) || isNullOrEmpty(fileName)) {
             Base.logger.warning("upload file param invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         Resp<GetStokenResp> result = this.getStoken(account);
@@ -403,11 +414,11 @@ public class Asset {
      * @param price     资产价格（可选）
      * @return {@link Resp}<{@link CreateAssetResp}>
      */
-    public Resp<CreateAssetResp> createAsset(final Account account, final long amount, AssetInfo assetInfo, final long userId, final long price) {
+    public Resp<CreateAssetResp> createAsset(final Account account, final long amount, AssetInfo assetInfo, final long userId, final long price) throws BaseException {
         // check param
         if (account == null || amount < 0 || assetInfo == null || assetInfo.assetCate < XassetDef.ASSETCATEART || isNullOrEmpty(assetInfo.title) || assetInfo.thumb == null || isNullOrEmpty(assetInfo.shortDesc)) {
             Base.logger.warning("create asset param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // sign
@@ -418,11 +429,10 @@ public class Asset {
         try {
             rawSign = Crypto.xassetSignECDSA(account, signMsg.getBytes());
         } catch (Exception e) {
-            Base.logger.warning("account esdsa sign failed" + e);
-            return null;
+            Base.logger.warning("account ecdsa sign failed" + e);
+            throw new BaseException("ecdsa sign error");
         }
         final String sign = rawSign;
-
         final String finalAssetInfo = JSONObject.toJSONString(assetInfo);
         Map<String, String> body = new HashMap<String, String>() {
             {
@@ -443,24 +453,28 @@ public class Asset {
             res = Base.post(Api.CREATEASSET, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("create asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
-        CreateAssetResp resp = new CreateAssetResp(requestId, errNo, obj.getString("errmsg"),
+        CreateAssetResp resp = new CreateAssetResp(requestId, errNo, errMsg,
                 obj.getLongValue("asset_id"));
 
         Base.logger.info(String.format("create asset succ.[asset_id:%d] [url:%s] [request_id:%s] [trace_id:%s]",
@@ -478,10 +492,10 @@ public class Asset {
      * @param price     资产价格（可选），不修改原价格请将此值设置为 -1
      * @return {@link Resp}<{@link BaseResp}>
      */
-    public Resp<BaseResp> alterAsset(final Account account, final long assetId, final long amount, AssetInfo assetInfo, final long price) {
+    public Resp<BaseResp> alterAsset(final Account account, final long assetId, final long amount, AssetInfo assetInfo, final long price) throws BaseException {
         if (account == null || assetId < 1 || (assetInfo == null && amount < -1)) {
             Base.logger.warning("alter asset param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // sign
@@ -491,8 +505,8 @@ public class Asset {
         try {
             rawSign = Crypto.xassetSignECDSA(account, signMsg.getBytes());
         } catch (Exception e) {
-            Base.logger.warning("account esdsa sign failed" + e);
-            return null;
+            Base.logger.warning("account ecdsa sign failed" + e);
+            throw new BaseException("ecdsa sign error");
         }
 
         final String sign = rawSign;
@@ -519,24 +533,28 @@ public class Asset {
             res = Base.post(Api.ALTERASSET, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("alter asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
-        BaseResp resp = new BaseResp(requestId, errNo, obj.getString("errmsg"));
+        BaseResp resp = new BaseResp(requestId, errNo, errMsg);
 
         Base.logger.info(String.format("alter asset succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl,
                 resp.requestId, res.traceId));
@@ -551,10 +569,10 @@ public class Asset {
      * @param isEvidence 是否存证。0：不存证 1：普通存证。默认 0（可选）
      * @return {@link Resp}<{@link BaseResp}>
      */
-    public Resp<BaseResp> publishAsset(final Account account, final long assetId, final int isEvidence) {
+    public Resp<BaseResp> publishAsset(final Account account, final long assetId, final int isEvidence) throws BaseException {
         if (account == null || assetId < 1 || isEvidence < 0 || isEvidence > 1) {
             Base.logger.warning("publish asset param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // sign
@@ -564,8 +582,8 @@ public class Asset {
         try {
             rawSign = Crypto.xassetSignECDSA(account, signMsg.getBytes());
         } catch (Exception e) {
-            Base.logger.warning("account esdsa sign failed" + e);
-            return null;
+            Base.logger.warning("account ecdsa sign failed" + e);
+            throw new BaseException("ecdsa sign error");
         }
 
         final String sign = rawSign;
@@ -585,24 +603,28 @@ public class Asset {
             res = Base.post(Api.PUBLISHASSET, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("publish asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
-        BaseResp resp = new BaseResp(requestId, errNo, obj.getString("errmsg"));
+        BaseResp resp = new BaseResp(requestId, errNo, errMsg);
 
         Base.logger.info(String.format("publish asset succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl,
                 resp.requestId, res.traceId));
@@ -616,10 +638,10 @@ public class Asset {
      * @param assetId 资产id
      * @return {@link Resp}<{@link BaseResp}>
      */
-    public Resp<BaseResp> freezeAsset(final long assetId, final Account account) {
+    public Resp<BaseResp> freezeAsset(final long assetId, final Account account) throws BaseException {
         if (assetId < 1 || account == null) {
             Base.logger.warning("freeze asset param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // sign
@@ -629,8 +651,8 @@ public class Asset {
         try {
             rawSign = Crypto.xassetSignECDSA(account, signMsg.getBytes());
         } catch (Exception e) {
-            Base.logger.warning("account esdsa sign failed" + e);
-            return null;
+            Base.logger.warning("account ecdsa sign failed" + e);
+            throw new BaseException("ecdsa sign error");
         }
 
         final String sign = rawSign;
@@ -649,24 +671,28 @@ public class Asset {
             res = Base.post(Api.FREEZEASSET, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("freeze asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
-        BaseResp resp = new BaseResp(requestId, errNo, obj.getString("errmsg"));
+        BaseResp resp = new BaseResp(requestId, errNo, errMsg);
 
         Base.logger.info(String.format("freeze asset succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl,
                 resp.requestId, res.traceId));
@@ -679,10 +705,10 @@ public class Asset {
      * @param assetId 资产id
      * @return {@link Resp}<{@link QueryAssetResp}>
      */
-    public Resp<QueryAssetResp> queryAsset(final long assetId) {
+    public Resp<QueryAssetResp> queryAsset(final long assetId) throws BaseException {
         if (assetId < 1) {
             Base.logger.warning("query asset param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         Map<String, String> body = new HashMap<String, String>() {
@@ -696,21 +722,25 @@ public class Asset {
             res = Base.post(Api.QUERYASSET, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("query asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         JSONObject meta = obj.getJSONObject("meta");
@@ -726,7 +756,7 @@ public class Asset {
 
         AssetMeta assetMeta = new AssetMeta(meta.getLongValue("asset_id"), meta.getIntValue("asset_cate"), meta.getString("title"), thumb, meta.getString("short_desc"), meta.getString("long_desc"), meta.getJSONArray("img_desc"), meta.getJSONArray("asset_url"), meta.getIntValue("amount"), meta.getLongValue("price"), meta.getIntValue("status"), meta.getString("asset_ext"), meta.getString("create_addr"), meta.getLongValue("group_id"), meta.getString("tx_id"));
 
-        QueryAssetResp resp = new QueryAssetResp(requestId, errNo, obj.getString("errmsg"), assetMeta);
+        QueryAssetResp resp = new QueryAssetResp(requestId, errNo, errMsg, assetMeta);
 
         Base.logger.info(String.format("query asset succ.[meta:%s] [url:%s] [request_id:%s] [trace_id:%s]", resp.meta,
                 res.reqUrl, resp.requestId, res.traceId));
@@ -742,10 +772,10 @@ public class Asset {
      * @param status 资产状态。0：全部 1：初试 3：发行中 4：发行成功。默认 0（可选）
      * @return {@link Resp}<{@link ListPageResp}>
      */
-    public Resp<ListPageResp> listAssetsByAddr(final int status, final String addr, final int page, final int limit) {
+    public Resp<ListPageResp> listAssetsByAddr(final int status, final String addr, final int page, final int limit) throws BaseException {
         if (isNullOrEmpty(addr) || page < 1 || limit < 0 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("list assets by addr param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         Map<String, String> body = new HashMap<String, String>() {
@@ -762,21 +792,25 @@ public class Asset {
             res = Base.post(Api.LISTASSETBYADDR, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("list assets by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         JSONArray rawList = obj.getJSONArray("list");
@@ -795,7 +829,7 @@ public class Asset {
             list[i] = new AssetMeta(meta.getLongValue("asset_id"), meta.getIntValue("asset_cate"), meta.getString("title"), thumb, meta.getString("short_desc"), meta.getString("long_desc"), meta.getJSONArray("img_desc"), meta.getJSONArray("asset_url"), meta.getIntValue("amount"), meta.getLongValue("price"), meta.getIntValue("status"), meta.getString("asset_ext"), meta.getString("create_addr"), meta.getLongValue("group_id"), meta.getString("tx_id"));
         }
 
-        ListPageResp resp = new ListPageResp(requestId, errNo, obj.getString("errmsg"), list, obj.getIntValue("total_cnt"));
+        ListPageResp resp = new ListPageResp(requestId, errNo, errMsg, list, obj.getIntValue("total_cnt"));
 
         Base.logger.info(String.format(
                 "list assets by addr succ.[list:%s] [total_cnt:%d] [url:%s] [request_id:%s] [trace_id:%s]",
@@ -814,10 +848,10 @@ public class Asset {
      * @param price    碎片价格（可选）
      * @return {@link Resp}<{@link GrantShardResp}>
      */
-    public Resp<GrantShardResp> grantShard(final Account account, final long assetId, long shardId, final String toAddr, final long toUserId, final long price) {
+    public Resp<GrantShardResp> grantShard(final Account account, final long assetId, long shardId, final String toAddr, final long toUserId, final long price) throws BaseException {
         if (account == null || assetId < 1 || isNullOrEmpty(toAddr)) {
             Base.logger.warning("grant shard param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // sign
@@ -832,7 +866,7 @@ public class Asset {
             rawSign = Crypto.xassetSignECDSA(account, signMsg.getBytes());
         } catch (Exception e) {
             Base.logger.warning("account ecdsa sign failed" + e);
-            return null;
+            throw new BaseException("ecdsa sign error");
         }
 
         final String sign = rawSign;
@@ -855,24 +889,28 @@ public class Asset {
             res = Base.post(Api.GRANTSHARD, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("grant shard failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
-        GrantShardResp resp = new GrantShardResp(requestId, errNo, obj.getString("errmsg"),
+        GrantShardResp resp = new GrantShardResp(requestId, errNo, errMsg,
                 obj.getLongValue("asset_id"), obj.getLongValue("shard_id"));
 
         Base.logger.info(String.format(
@@ -892,10 +930,10 @@ public class Asset {
      * @param price    碎片价格（可选）
      * @return {@link Resp}<{@link BaseResp}>
      */
-    public Resp<BaseResp> transferShard(final Account account, final long assetId, final long shardId, final String toAddr, final long toUserId, final long price) {
+    public Resp<BaseResp> transferShard(final Account account, final long assetId, final long shardId, final String toAddr, final long toUserId, final long price) throws BaseException {
         if (account == null || assetId < 1 || shardId < 1 || isNullOrEmpty(toAddr)) {
             Base.logger.warning("transfer shard param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // sign
@@ -906,7 +944,7 @@ public class Asset {
             rawSign = Crypto.xassetSignECDSA(account, signMsg.getBytes());
         } catch (Exception e) {
             Base.logger.warning("account ecdsa sign failed" + e);
-            return null;
+            throw new BaseException("ecdsa sign error");
         }
 
         final String sign = rawSign;
@@ -929,24 +967,28 @@ public class Asset {
             res = Base.post(Api.TRANASFERSHARD, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("transfer shard failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
-        BaseResp resp = new BaseResp(requestId, errNo, obj.getString("errmsg"));
+        BaseResp resp = new BaseResp(requestId, errNo, errMsg);
 
         Base.logger.info(String.format("transfer shard succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl,
                 resp.requestId, res.traceId));
@@ -962,10 +1004,10 @@ public class Asset {
      * @param shardId  碎片id
      * @return {@link Resp}<{@link BaseResp}>
      */
-    public Resp<BaseResp> consumeShard(final Account cAccount, final Account uAccount, final long assetId, final long shardId) {
+    public Resp<BaseResp> consumeShard(final Account cAccount, final Account uAccount, final long assetId, final long shardId) throws BaseException {
         if (cAccount == null || uAccount == null || assetId < 1 || shardId < 1) {
             Base.logger.warning("consume shard param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // sign
@@ -977,14 +1019,14 @@ public class Asset {
             rawCSign = Crypto.xassetSignECDSA(cAccount, signMsg.getBytes());
         } catch (Exception e) {
             Base.logger.warning("cAccount ecdsa sign failed" + e);
-            return null;
+            throw new BaseException("ecdsa sign error");
         }
 
         try {
             rawUSign = Crypto.xassetSignECDSA(uAccount, signMsg.getBytes());
         } catch (Exception e) {
             Base.logger.warning("uAccount ecdsa sign failed" + e);
-            return null;
+            throw new BaseException("ecdsa sign error");
         }
 
         final String cSign = rawCSign;
@@ -1008,25 +1050,29 @@ public class Asset {
             res = Base.post(Api.CONSUMESHARD, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger
                     .warning(String.format("consume shard failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                             res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
-        BaseResp resp = new BaseResp(requestId, errNo, obj.getString("errmsg"));
+        BaseResp resp = new BaseResp(requestId, errNo, errMsg);
 
         Base.logger.info(String.format("consume shard succ.[url:%s] [request_id:%s] [trace_id:%s]", res.reqUrl,
                 resp.requestId, res.traceId));
@@ -1040,10 +1086,10 @@ public class Asset {
      * @param shardId 碎片id
      * @return {@link Resp}<{@link QueryShardsResp}>
      */
-    public Resp<QueryShardsResp> queryShards(final long assetId, final long shardId) {
+    public Resp<QueryShardsResp> queryShards(final long assetId, final long shardId) throws BaseException {
         if (assetId < 1 || shardId < 1) {
             Base.logger.warning("query shards param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         Map<String, String> body = new HashMap<String, String>() {
@@ -1058,21 +1104,25 @@ public class Asset {
             res = Base.post(Api.QUERYSHARDS, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("query shard failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         JSONObject rawMeta = obj.getJSONObject("meta");
@@ -1090,7 +1140,7 @@ public class Asset {
         ShardAssetInfo assetInfo = new ShardAssetInfo(rawAssetInfo.getString("title"), rawAssetInfo.getIntValue("asset_cate"), thumb, rawAssetInfo.getString("short_desc"), rawAssetInfo.getString("create_addr"), rawAssetInfo.getLongValue("group_id"));
         ShardMeta meta = new ShardMeta(rawMeta.getLongValue("asset_id"), rawMeta.getLongValue("shard_id"), rawMeta.getString("owner_addr"), rawMeta.getLongValue("uid"), rawMeta.getLongValue("price"),rawMeta.getIntValue("status"), rawMeta.getString("tx_id"), assetInfo, rawMeta.getLongValue("ctime"));
 
-        QueryShardsResp resp = new QueryShardsResp(requestId, errNo, obj.getString("errmsg"), meta);
+        QueryShardsResp resp = new QueryShardsResp(requestId, errNo, errMsg, meta);
 
         Base.logger.info(String.format("query shards succ.[meta:%s] [url:%s] [request_id:%s] [trace_id:%s]", resp.meta,
                 res.reqUrl, resp.requestId, res.traceId));
@@ -1106,10 +1156,10 @@ public class Asset {
      * @param assetId 拉取指定藏品的碎片列表（可选）
      * @return {@link Resp}<{@link ListPageResp}>
      */
-    public Resp<ListPageResp> listShardsByAddr(final String addr, final int page, final int limit, final long assetId) {
+    public Resp<ListPageResp> listShardsByAddr(final String addr, final int page, final int limit, final long assetId) throws BaseException {
         if (isNullOrEmpty(addr) || page < 1 || limit < 1 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("list shards by addr param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         Map<String, String> body = new HashMap<String, String>() {
@@ -1126,21 +1176,25 @@ public class Asset {
             res = Base.post(Api.LISTSHARDSBYADDR, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("list shards by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         JSONArray rawList = obj.getJSONArray("list");
@@ -1161,7 +1215,7 @@ public class Asset {
             list[i] = new ShardMeta(rawMeta.getLongValue("asset_id"), rawMeta.getLongValue("shard_id"), rawMeta.getString("owner_addr"), rawMeta.getLongValue("uid"), rawMeta.getLongValue("price"),rawMeta.getIntValue("status"), rawMeta.getString("tx_id"), assetInfo, rawMeta.getLongValue("ctime"));
         }
 
-        ListPageResp resp = new ListPageResp(requestId, errNo, obj.getString("errmsg"), list, obj.getIntValue("total_cnt"));
+        ListPageResp resp = new ListPageResp(requestId, errNo, errMsg, list, obj.getIntValue("total_cnt"));
 
         Base.logger.info(String.format(
                 "list shards by addr succ.[list:%s] [total_cnt:%d] [url:%s] [request_id:%s] [trace_id:%s]", resp.list,
@@ -1177,10 +1231,10 @@ public class Asset {
      * @param limit   每页拉取数量，默认20，最多50（可选）
      * @return {@link Resp}<{@link ListCursorResp}>
      */
-    public Resp<ListCursorResp> listShardsByAsset(final long assetId, final String cursor, final int limit) {
+    public Resp<ListCursorResp> listShardsByAsset(final long assetId, final String cursor, final int limit) throws BaseException {
         if (assetId < 1 || limit < 1 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("list shards by asset param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         Map<String, String> body = new HashMap<String, String>() {
@@ -1196,21 +1250,25 @@ public class Asset {
             res = Base.post(Api.LISTSHARDSBYASSET, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("list shards by asset failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         JSONArray rawList = obj.getJSONArray("list");
@@ -1220,7 +1278,7 @@ public class Asset {
             list[i] = new ShardMeta(rawMeta.getLongValue("asset_id"), rawMeta.getLongValue("shard_id"), rawMeta.getString("owner_addr"), 0, rawMeta.getLongValue("price"),rawMeta.getIntValue("status"), rawMeta.getString("tx_id"), null, rawMeta.getLongValue("ctime"));
         }
 
-        ListCursorResp resp = new ListCursorResp(requestId, errNo, obj.getString("errmsg"), list, obj.getIntValue("has_more"), obj.getString("cursor"));
+        ListCursorResp resp = new ListCursorResp(requestId, errNo, errMsg, list, obj.getIntValue("has_more"), obj.getString("cursor"));
 
         Base.logger.info(String.format(
                 "list shards by asset succ.[list:%s] [cursor:%s] [has_more:%d] [url:%s] [request_id:%s] [trace_id:%s]",
@@ -1237,10 +1295,10 @@ public class Asset {
      * @param opTypes   要查询的操作类型，[]int格式JSON串，1:授予 2:转出 3:转入 4:核销
      * @return {@link Resp}<{@link ListCursorResp}>
      */
-    public Resp<ListCursorResp> listDiffByAddr(final String addr, final String cursor, final int limit, final String opTypes) {
+    public Resp<ListCursorResp> listDiffByAddr(final String addr, final String cursor, final int limit, final String opTypes) throws BaseException {
         if (isNullOrEmpty(addr) || limit < 1 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("list diff by addr param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         Map<String, String> body = new HashMap<String, String>() {
@@ -1257,21 +1315,25 @@ public class Asset {
             res = Base.post(Api.LISTDIFFBYADDR, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("list diff by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         JSONArray rawList = obj.getJSONArray("list");
@@ -1290,7 +1352,7 @@ public class Asset {
             list[i] = new ShardDiffInfo(rawMeta.getLongValue("asset_id"), rawMeta.getLongValue("shard_id"), rawMeta.getIntValue("operate"), rawMeta.getString("title"), thumb, rawMeta.getLongValue("ctime"));
         }
 
-        ListCursorResp resp = new ListCursorResp(requestId, errNo, obj.getString("errmsg"), list, obj.getIntValue("has_more"), obj.getString("cursor"));
+        ListCursorResp resp = new ListCursorResp(requestId, errNo, errMsg, list, obj.getIntValue("has_more"), obj.getString("cursor"));
 
         Base.logger.info(String.format(
                 "list diff by addr succ.[list:%s] [cursor:%s] [has_more:%d] [url:%s] [request_id:%s] [trace_id:%s]",
@@ -1307,10 +1369,10 @@ public class Asset {
      * @param shardId 查询指定藏品，指定碎片的历史记录（可选）
      * @return {@link Resp}<{@link ListPageResp}>
      */
-    public Resp<ListPageResp> history(final long assetId, final int page, final int limit, final long shardId) {
+    public Resp<ListPageResp> history(final long assetId, final int page, final int limit, final long shardId) throws BaseException {
         if (assetId < 1 || page < 1 || limit < 1 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("history param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         Map<String, String> body = new HashMap<String, String>() {
@@ -1327,21 +1389,25 @@ public class Asset {
             res = Base.post(Api.HISTORYASSET, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("history failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         JSONArray rawList = obj.getJSONArray("list");
@@ -1351,7 +1417,7 @@ public class Asset {
             list[i] = new History(history.getLongValue("asset_id"), history.getIntValue("type"), history.getLongValue("shard_id"), history.getLongValue("price"),history.getString("tx_id"), history.getString("from"), history.getString("to"), history.getLongValue("ctime"));
         }
 
-        ListPageResp resp = new ListPageResp(requestId, errNo, obj.getString("errmsg"), list, obj.getIntValue("total_cnt"));
+        ListPageResp resp = new ListPageResp(requestId, errNo, errMsg, list, obj.getIntValue("total_cnt"));
 
         Base.logger.info(String.format("history succ.[list:%s] [total_cnt:%d] [url:%s] [request_id:%s] [trace_id:%s]",
                 resp.list, resp.totalCnt, res.reqUrl, resp.requestId, res.traceId));
@@ -1364,10 +1430,10 @@ public class Asset {
      * @param assetId 资产id
      * @return {@link Resp}<{@link GetEvidenceInfoResp}>
      */
-    public Resp<GetEvidenceInfoResp> getEvidenceInfo(final long assetId) {
+    public Resp<GetEvidenceInfoResp> getEvidenceInfo(final long assetId) throws BaseException {
         if (assetId < 1) {
             Base.logger.warning("get evidence info param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         Map<String, String> body = new HashMap<String, String>() {
@@ -1381,24 +1447,28 @@ public class Asset {
             res = Base.post(Api.GETEVIDENCEINFO, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("get evidence info failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
-        GetEvidenceInfoResp resp = new GetEvidenceInfoResp(requestId, errNo, obj.getString("errmsg"),
+        GetEvidenceInfoResp resp = new GetEvidenceInfoResp(requestId, errNo, errMsg,
                 obj.getString("create_addr"), obj.getString("tx_id"), obj.getJSONObject("asset_info"), obj.getLongValue("ctime"));
 
         Base.logger.info(String.format(
@@ -1414,10 +1484,10 @@ public class Asset {
      * @param unionId 第三方应用获取的union_id
      * @return {@link Resp}<{@link ListAddrResp}>
      */
-    public Resp<ListAddrResp> scenelistAddr(final String unionId) {
+    public Resp<ListAddrResp> scenelistAddr(final String unionId) throws BaseException {
         if (isNullOrEmpty(unionId)) {
             Base.logger.warning("scene list addr param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         // 使用 账户sk 加密 union_id
@@ -1435,21 +1505,25 @@ public class Asset {
             res = Base.post(Api.SCENELISTADDR, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("list addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         JSONArray rawList = obj.getJSONArray("list");
@@ -1459,13 +1533,13 @@ public class Asset {
             list[i] = new AddrMeta(rawMeta.getString("addr"), rawMeta.getString("token"), rawMeta.getLongValue("group_id"));
         }
 
-        ListAddrResp resp = new ListAddrResp(requestId, errNo, obj.getString("errmsg"), list);
+        ListAddrResp resp = new ListAddrResp(requestId, errNo, errMsg, list);
 
 
         Base.logger.info(String.format(
                 "list addr succ.[list:%s] [url:%s] [request_id:%s] [trace_id:%s]", resp.list, res.reqUrl, resp.requestId,
                 res.traceId));
-        return new Resp<ListAddrResp>(resp, res);
+        return new Resp<>(resp, res);
     }
 
     /**
@@ -1477,10 +1551,10 @@ public class Asset {
      * @param limit  每页拉取数量，默认30，最多50（可选）
      * @return {@link Resp}<{@link ListCursorResp}>
      */
-    public Resp<ListCursorResp> scenelistsdsbyaddr(final String addr, final String token, final String cursor, final int limit) {
+    public Resp<ListCursorResp> scenelistsdsbyaddr(final String addr, final String token, final String cursor, final int limit) throws BaseException {
         if (isNullOrEmpty(addr) || isNullOrEmpty(token) || limit < 1 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("scene list sds by addr param is invalid");
-            return null;
+           throw new BaseException("param error");
         }
 
         Map<String, String> body = new HashMap<String, String>() {
@@ -1497,21 +1571,25 @@ public class Asset {
             res = Base.post(Api.SCENELISTSHRADSBYADDR, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("list shards by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         JSONArray rawList = obj.getJSONArray("list");
@@ -1530,7 +1608,7 @@ public class Asset {
             list[i] = new SceneShardInfo(rawMeta.getLongValue("asset_id"), rawMeta.getLongValue("shard_id"), rawMeta.getString("title"), thumb, rawMeta.getLongValue("ctime"));
         }
 
-        ListCursorResp resp = new ListCursorResp(requestId, errNo, obj.getString("errmsg"), list, obj.getIntValue("has_more"), obj.getString("cursor"));
+        ListCursorResp resp = new ListCursorResp(requestId, errNo, errMsg, list, obj.getIntValue("has_more"), obj.getString("cursor"));
 
         Base.logger.info(String.format(
                 "list shards by addr succ.[list:%s] [cursor:%s] [has_more:%d] [url:%s] [request_id:%s] [trace_id:%s]",
@@ -1546,10 +1624,10 @@ public class Asset {
      * @param assetIds 要查询的资产ID列表json字符串，一次查询不超过10个
      * @return {@link Resp}<{@link HasAssetByAddrResp}>
      */
-    public Resp<HasAssetByAddrResp> scenehasastbyaddr(final String addr, final String token, final String assetIds) {
+    public Resp<HasAssetByAddrResp> scenehasastbyaddr(final String addr, final String token, final String assetIds) throws BaseException {
         if (isNullOrEmpty(addr) || isNullOrEmpty(token) || isNullOrEmpty(assetIds)) {
             Base.logger.warning("scene has asset by addr param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         Map<String, String> body = new HashMap<String, String>() {
@@ -1565,26 +1643,30 @@ public class Asset {
             res = Base.post(Api.SCENEHASASSETBYADDR, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("has asset by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         Map<String, Integer> result = JSONObject.parseObject(obj.getJSONObject("result").toString(), new TypeReference<Map<String, Integer>>(){});
 
-        HasAssetByAddrResp resp = new HasAssetByAddrResp(requestId, errNo, obj.getString("errmsg"), result);
+        HasAssetByAddrResp resp = new HasAssetByAddrResp(requestId, errNo, errMsg, result);
 
         Base.logger.info(String.format(
                 "has asset by addr succ.[result:%s] [url:%s] [request_id:%s] [trace_id:%s]", resp.result, res.reqUrl, resp.requestId,
@@ -1602,10 +1684,10 @@ public class Asset {
      * @param opTypes   要查询的操作类型，[]int格式JSON串，1:授予 2:转出 3:转入 4:核销
      * @return {@link Resp}<{@link ListCursorResp}>
      */
-    public Resp<ListCursorResp> scenelistDiffByAddr(final String addr, final String token, final String cursor, final int limit, final String opTypes) {
+    public Resp<ListCursorResp> scenelistDiffByAddr(final String addr, final String token, final String cursor, final int limit, final String opTypes) throws BaseException {
         if (isNullOrEmpty(addr) || isNullOrEmpty(token) || limit < 1 || limit > BaseDef.MAXLIMIT) {
             Base.logger.warning("scene list diff by addr param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         Map<String, String> body = new HashMap<String, String>() {
@@ -1623,21 +1705,25 @@ public class Asset {
             res = Base.post(Api.SCENELISTDIFFBYADDR, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("list diff by addr failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         JSONArray rawList = obj.getJSONArray("list");
@@ -1656,7 +1742,7 @@ public class Asset {
             list[i] = new ShardDiffInfo(rawMeta.getLongValue("asset_id"), rawMeta.getLongValue("shard_id"), rawMeta.getIntValue("operate"), rawMeta.getString("title"), thumb, rawMeta.getLongValue("ctime"));
         }
 
-        ListCursorResp resp = new ListCursorResp(requestId, errNo, obj.getString("errmsg"), list, obj.getIntValue("has_more"), obj.getString("cursor"));
+        ListCursorResp resp = new ListCursorResp(requestId, errNo, errMsg, list, obj.getIntValue("has_more"), obj.getString("cursor"));
 
         Base.logger.info(String.format(
                 "list diff by addr succ.[list:%s] [cursor:%s] [has_more:%d] [url:%s] [request_id:%s] [trace_id:%s]",
@@ -1673,10 +1759,10 @@ public class Asset {
      * @param shardId 碎片id
      * @return {@link Resp}<{@link SceneQueryShardsResp}>
      */
-    public Resp<SceneQueryShardsResp> scenequeryShards(final String addr, final String token, final long assetId, final long shardId) {
+    public Resp<SceneQueryShardsResp> scenequeryShards(final String addr, final String token, final long assetId, final long shardId) throws BaseException {
         if (assetId < 1 || shardId < 1 || isNullOrEmpty(addr) || isNullOrEmpty(token)) {
             Base.logger.warning("scene query shards param is invalid");
-            return null;
+            throw new BaseException("param error");
         }
 
         Map<String, String> body = new HashMap<String, String>() {
@@ -1693,21 +1779,25 @@ public class Asset {
             res = Base.post(Api.SCENEQUERYSHARDINFO, body);
         } catch (Exception e) {
             Base.logger.warning("post request xasset failed" + e);
-            return null;
-        }
-        if (res.httpCode != 200) {
-            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
-                    res.httpCode, res.reqUrl, res.body, res.traceId));
-            return null;
+            throw new BaseException("post request error");
         }
 
+        // 解析结果
         JSONObject obj = JSONObject.parseObject(res.body);
         long requestId = obj.getLongValue("request_id");
         int errNo = obj.getIntValue("errno");
+        String errMsg = obj.getString("errmsg");
+
+        if (res.httpCode != 200) {
+            Base.logger.warning(String.format("post request response is not 200.[http_code:%d] [url:%s] [body:%s] [trace_id:%s]",
+                    res.httpCode, res.reqUrl, res.body, res.traceId));
+            throw new BaseException(errNo, errMsg, requestId);
+        }
+
         if (errNo != BaseDef.ERRNOSUCC) {
             Base.logger.warning(String.format("query shard failed.[url:%s] [request_id:%s] [err_no:%d] [trace_id:%s]",
                     res.reqUrl, requestId, errNo, res.traceId));
-            return null;
+            throw new BaseException(errNo, errMsg, requestId);
         }
 
         JSONObject rawMeta = obj.getJSONObject("meta");
@@ -1724,7 +1814,7 @@ public class Asset {
         SceneShardMeta meta = new SceneShardMeta(rawMeta.getLongValue("asset_id"), rawMeta.getLongValue("shard_id"), rawMeta.getString("owner_addr"), rawMeta.getLongValue("price"), rawMeta.getIntValue("status"), rawMeta.getString("tx_id"), rawMeta.getLongValue("ctime"),
                 rawMeta.getString("jump_link"), rawMeta.getString("title"), thumb, rawMeta.getJSONArray("asset_url"), rawMeta.getJSONArray("img_desc"), rawMeta.getString("short_desc"), rawMeta.getString("create_addr"));
 
-        SceneQueryShardsResp resp = new SceneQueryShardsResp(requestId, errNo, obj.getString("errmsg"), meta);
+        SceneQueryShardsResp resp = new SceneQueryShardsResp(requestId, errNo, errMsg, meta);
 
         Base.logger.info(String.format("query shards succ.[meta:%s] [url:%s] [request_id:%s] [trace_id:%s]", resp.meta,
                 res.reqUrl, resp.requestId, res.traceId));

@@ -4,6 +4,41 @@ package com.baidu.xasset.client.base;
  * 通用基础服务定义
  */
 public class BaseDef {
+    public static class BaseException extends RuntimeException {
+
+        private int errNo; // 异常对应的返回码
+        private String errMsg; // 异常对应的描述信息
+        private long requestId; // 异常对应的请求id
+
+        public BaseException() {
+            super();
+        }
+
+        public BaseException(String message) {
+            super(message);
+            errMsg = message;
+        }
+
+        public BaseException(int retCd, String msgDes, long id) {
+            super();
+            this.errNo = retCd;
+            this.errMsg = msgDes;
+            this.requestId = id;
+        }
+
+        public int getErrNo() {
+            return errNo;
+        }
+
+        public String getErrMsg() {
+            return errMsg;
+        }
+
+        public Long getRequestId() {
+            return requestId;
+        }
+    }
+
     /**
      * 错误码
      */
