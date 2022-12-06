@@ -26,11 +26,7 @@ public class Crypto {
         // 2. 使用ECC私钥来签名
         BigInteger k = account.getKeyPair().getPrivateKey();
         byte[] signature;
-        try {
-            signature = Ecc.sign(msg, k);
-        } catch (Exception e) {
-            throw (e);
-        }
+        signature = Ecc.sign(msg, k);
 
         // 3. 对签名转化为16进制字符串显示
         return EncodeSign(signature);
