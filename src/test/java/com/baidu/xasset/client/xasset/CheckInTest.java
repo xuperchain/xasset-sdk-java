@@ -14,8 +14,14 @@
 //    public void TestGetStoken() {
 //        Account acc = XchainAccount.newXchainEcdsaAccount(2, 1);
 //        Asset handle = new Asset(Config.getXassetConfig(), Logger.getGlobal());
-//        Resp<GetStokenResp> result = handle.getStoken(acc);
-//        System.out.println(result.apiResp.accessInfo);
+//        Resp<GetStokenResp> result;
+//        try {
+//            result = handle.getStoken(acc);
+//        } catch (BaseDef.BaseException e) {
+//            System.out.printf("errMsg: %s, errNo: %d, requestId:%d\n", e.getErrMsg(), e.getErrNo(), e.getRequestId());
+//            return;
+//        }
+//        System.out.println(result.apiResp.accessInfo.bucket);
 //    }
 //
 //    @Test
@@ -26,7 +32,7 @@
 //        Asset handle = new Asset(Config.getXassetConfig(), Logger.getGlobal());
 //
 //        // 1. 使用手百小程序生成区块链账户
-//        Resp<BdBoxRegisterResp> result1 = handle.bdboxRegister("open_id", "app_key");
+//        Resp<BdBoxRegisterResp> result1 = handle.bdboxRegister("", "app_key");
 //        System.out.printf("区块链账户地址: %s\n", result1.apiResp.address);
 //
 //        // 2. 手百小程序绑定已有区块链账户

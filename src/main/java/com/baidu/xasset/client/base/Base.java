@@ -79,12 +79,8 @@ public class Base {
         InternalRequest inReq = Client.genInternalRequest(HttpMethodName.POST, uri, data, header);
         BceCredentials cred = new DefaultBceCredentials(getConfig().Credentials.AccessKeyId,
                 getConfig().Credentials.SecreteAccessKey);
-        try {
-            Signer.sign(inReq, cred, getConfig().SignOption);
-        } catch (Exception e) {
-            System.out.println("xasset access sign failed");
-            throw (e);
-        }
+
+        Signer.sign(inReq, cred, getConfig().SignOption);
 
         String params = HttpUtil.genParamStr(inReq.getParameters());
         Map<String, String> headers = Maps.newHashMap();
